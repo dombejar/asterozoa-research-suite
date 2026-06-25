@@ -1,0 +1,13 @@
+{
+  "name": "asterozoa-research-suite",
+  "description": "Asterozoa Capital plugin marketplace: primary-source-first research and institutional valuation models.",
+  "owner": { "name": "Asterozoa Capital" },
+  "plugins": [
+    {
+      "name": "asterozoa",
+      "description": "Primary-source-first equity/credit research + institutional valuation models.",
+      "source": ".",
+      "version": "1.0.2"
+    }
+  ]
+}

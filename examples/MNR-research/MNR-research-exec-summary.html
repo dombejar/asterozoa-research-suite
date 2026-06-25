@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MNR Exec Summary — Mach Natural Resources LP</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1a1a;
+    --ink-mid: #444;
+    --ink-light: #777;
+    --rule: #d8d8d8;
+    --accent: #1a3a5c;
+    --pass: #2d6a4f;
+    --warn: #7d3c0a;
+    --flag: #5c2d91;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --mono: "SF Mono", "Fira Mono", "Consolas", monospace;
+    --sans: "Inter", "Helvetica Neue", Arial, sans-serif;
+  }
+
+  html { font-size: 13.5px; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    padding: 48px 32px;
+  }
+
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 48px 56px;
+  }
+
+  /* ---- Header ---- */
+  .doc-header {
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 20px;
+    margin-bottom: 28px;
+  }
+  .doc-header .eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+  .doc-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.01em;
+  }
+  .doc-header .meta {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-top: 6px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .doc-header .meta span { white-space: nowrap; }
+
+  /* ---- Verdict banner ---- */
+  .verdict {
+    background: #fff8f0;
+    border-left: 4px solid #c0392b;
+    padding: 12px 16px;
+    margin-bottom: 28px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #7b241c;
+    border-radius: 0 2px 2px 0;
+  }
+  .verdict span { font-weight: 400; color: var(--ink-mid); margin-left: 8px; }
+
+  /* ---- Section headings ---- */
+  h2 {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 600;
+    margin: 32px 0 12px;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 5px;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  /* ---- Key Insights ---- */
+  .insights { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .insights li {
+    padding: 11px 14px;
+    border-left: 3px solid var(--accent);
+    background: #f5f7fa;
+    font-size: 12.5px;
+    line-height: 1.55;
+    border-radius: 0 2px 2px 0;
+  }
+  .insights li .src {
+    font-size: 10.5px;
+    color: var(--ink-light);
+    font-family: var(--mono);
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* ---- Body prose ---- */
+  p {
+    font-size: 13px;
+    color: var(--ink-mid);
+    margin-bottom: 12px;
+    line-height: 1.65;
+  }
+
+  /* ---- Risk list ---- */
+  .risks { list-style: none; counter-reset: risk-ctr; display: flex; flex-direction: column; gap: 8px; }
+  .risks li {
+    counter-increment: risk-ctr;
+    display: flex;
+    gap: 12px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .risks li::before {
+    content: counter(risk-ctr);
+    min-width: 22px;
+    height: 22px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .risks li strong { color: var(--ink); }
+  .risks li .src { font-size: 10.5px; color: var(--ink-light); font-family: var(--mono); }
+
+  /* ---- Financial table ---- */
+  .fin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  .fin-table th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    font-weight: 600;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--rule);
+    background: #f5f7fa;
+  }
+  .fin-table th:not(:first-child) { text-align: right; }
+  .fin-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #eee;
+    color: var(--ink-mid);
+    vertical-align: top;
+  }
+  .fin-table td:not(:first-child) { text-align: right; font-family: var(--mono); font-size: 11.5px; }
+  .fin-table td:first-child { font-size: 12px; }
+  .fin-table td.src-cell { font-size: 10.5px; color: var(--ink-light); font-family: var(--mono); text-align: left; }
+  .fin-table tr:last-child td { border-bottom: none; }
+  .fin-table .note-row td {
+    font-size: 11px;
+    color: var(--ink-light);
+    background: #f9f9f9;
+    border-top: 1px solid var(--rule);
+    padding: 8px 10px;
+    text-align: left !important;
+    font-family: inherit;
+    font-style: italic;
+  }
+
+  /* ---- FLAG block ---- */
+  .flags {
+    background: #f9f5ff;
+    border-left: 3px solid var(--flag);
+    padding: 12px 16px;
+    border-radius: 0 2px 2px 0;
+    font-size: 11.5px;
+    color: var(--ink-mid);
+    line-height: 1.6;
+    margin-top: 12px;
+  }
+  .flags .flag-title {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--flag);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .flags ol { padding-left: 18px; display: flex; flex-direction: column; gap: 5px; }
+  .flags ol li { font-size: 11.5px; }
+
+  /* ---- Conclusion ---- */
+  .conclusion {
+    background: #f0f5f0;
+    border-left: 4px solid var(--pass);
+    padding: 14px 18px;
+    border-radius: 0 2px 2px 0;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .conclusion .verdict-line {
+    font-weight: 700;
+    font-size: 13.5px;
+    color: var(--pass);
+    margin-bottom: 8px;
+  }
+
+  /* ---- Triggers ---- */
+  .triggers { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+  .triggers li {
+    display: flex;
+    gap: 10px;
+    font-size: 12.5px;
+    line-height: 1.55;
+  }
+  .triggers li .trigger-num {
+    min-width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--pass);
+    color: var(--pass);
+    font-size: 10.5px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ---- Footer ---- */
+  .doc-footer {
+    margin-top: 36px;
+    border-top: 1px solid var(--rule);
+    padding-top: 12px;
+    font-size: 10.5px;
+    color: var(--ink-light);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  strong { color: var(--ink); }
+  code { font-family: var(--mono); font-size: 0.92em; background: #f0f0f0; padding: 1px 4px; border-radius: 2px; }
+
+  @media print {
+    body { padding: 0; background: white; }
+    .page { border: none; padding: 32px 40px; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="doc-header">
+    <div class="eyebrow">Asterozoa Capital &mdash; Securities Research &mdash; EDGAR-Only Run</div>
+    <h1>Mach Natural Resources LP (NYSE: MNR)</h1>
+    <div class="meta">
+      <span>CIK 0001980088</span>
+      <span>SIC 1311 &mdash; Crude Petroleum &amp; Natural Gas</span>
+      <span>Oklahoma City, OK</span>
+      <span>As of: 2026-06-25</span>
+      <span>Source spine: Tier 1 EDGAR only &mdash; no vendor data</span>
+    </div>
+  </div>
+
+  <div class="verdict">
+    PASS &mdash; yield trade, not a mispricing
+    <span>No public debt to underwrite; equity is a variable commodity coupon at ~1.0x coverage. Two triggers below that would change the read.</span>
+  </div>
+
+  <h2>Key Insights</h2>
+  <ul class="insights">
+    <li>
+      MNR is a Tom Ward acquire-and-distribute MLP, not a growth compounder. It pays out essentially all available cash each quarter, so the unit is a levered, variable, commodity-price coupon: when prices fall, the distribution gets cut first &mdash; it already swung from <strong>$0.79 to $0.27/unit</strong> inside FY2025.
+      <span class="src">T1: 10-Q Q1 2026; 10-K FY2025</span>
+    </li>
+    <li>
+      Cash generation is the real story and it is steadier than the headline. CFO held at <strong>~$491&ndash;507M across FY2023&ndash;2025</strong> even as the company doubled via acquisitions; Q1 2026 CFO was <strong>$170M (~$681M annualized)</strong>. The Q1 2026 GAAP net loss of $35M is a non-cash $103.8M mark-to-market hedge loss &mdash; not an operating problem.
+      <span class="src">T1: 10-Q Q1 2026 cash flow + EBITDA recon</span>
+    </li>
+    <li>
+      Balance sheet is clean on maturity but unusual on structure: all debt under a single New Credit Agreement (revolving tranche up to $1.0B + term loan tranche up to $450M), Truist-agented, maturing <strong>Feb 27, 2029</strong>; <strong>$1.14B drawn</strong> as of 3/31/26, no bonds, no near-term wall, ~1.7&ndash;1.9x net leverage with covenant room to 3.0x. No fulcrum-security distressed angle.
+      <span class="src">T1: 10-Q Q1 2026 Note 7; 10-K FY2025</span>
+    </li>
+    <li>
+      The real risk is not a maturity wall &mdash; it is the <strong>borrowing base</strong>. Redetermined every April and October on reserve value; with oil spot near the ~$66 swap strikes, the next redetermination is the variable to watch, alongside Q1 2026 declared distribution coverage of only <strong>~1.0x</strong>.
+      <span class="src">T1: 10-Q Q1 2026; debt note</span>
+    </li>
+    <li>
+      No public debt to buy. The only tradable security is the LP unit, an apparent <strong>high-teens-yield commodity proxy</strong> at a flagged ~$13&ndash;15 unit price (not EDGAR-sourced). EDGAR provides no market price, no peer multiples, no credit rating, no FY2026 production guidance (capex budget $315&ndash;$360M is disclosed). Valuation cannot be closed on primary sources alone.
+      <span class="src">T1: 10-K FY2025; FLAG: price non-EDGAR</span>
+    </li>
+  </ul>
+
+  <h2>Thesis</h2>
+  <p>
+    MNR rolls up mature, low-decline conventional oil and gas (Anadarko core, plus Permian and San Juan added in two simultaneous Sep 2025 deals totaling ~$1.2B) and distributes substantially all free cash to unitholders. <code>T1: 10-K FY2025 Item 1</code>
+  </p>
+  <p>
+    The market is buying a high-teens distribution yield (annualized Q1 2026 rate ~$2.56/unit at a flagged ~$13&ndash;15 unit price). What you are actually underwriting is whether that cash coupon holds: it is ~70% gas by volume (Q1 2026), fully floating-rate on debt, hedged only partway out, and the payout is the <em>residual</em> after capex and interest &mdash; so it absorbs commodity weakness directly. The bull needs gas to hold and the borrowing base to stay put; the bear gets a coupon cut on the next leg down.
+    <code>T1: 8-K 2026-05-07; price is FLAG</code>
+  </p>
+
+  <h2>Variant View / Where the Model Breaks</h2>
+  <p>
+    Q1 2026 declared coverage was ~1.0x ($107.4M CAD vs ~$107.7M declared) and the Q4&rarr;Q1 step-up from $0.53 to $0.64/unit left essentially no cushion. The single data point that flips the thesis is the <strong>October 2026 borrowing-base redetermination</strong>: if reserve value compresses on lower price decks and the redetermined base falls toward the $1.14B drawn, liquidity and the distribution both tighten at once.
+    <code>T1: 10-Q Q1 2026 MD&amp;A</code>
+  </p>
+  <p>
+    The $90.4M Deep Anadarko impairment plus the drilling pause is an early tell that the legacy core underperformed &mdash; exactly the kind of reserve disappointment that pressures a redetermination. <code>T1: 10-K FY2025; 8-K 2026-05-07</code> Secondary fragility: Tom Ward has 4.8M units pledged as personal debt collateral (he bought 153K units in the April offering, net constructive); the IKAV and Sabinal acquisition counterparties (VEPU Inc., Simlog Inc., Sabinal Energy Operating) sold 9M units at $13.05 in April 2026; a $100M ATM was opened May 2026 &mdash; acquisition-counterparty selling and ATM overhang into a soft tape. <code>T1: 424B4 2026-04-06; 8-K 2026-05-22; 10-K FY2025</code>
+  </p>
+
+  <h2>Key Risks (Ranked by Materiality)</h2>
+  <ol class="risks">
+    <li>
+      <div>
+        <strong>Distribution-coverage / commodity pass-through.</strong> ~1.0x declared coverage; no minimum distribution; payout is the residual. A sustained gas or oil decline cuts the coupon directly (precedent: $0.79&rarr;$0.27 inside FY2025).
+        <span class="src">T1: 10-K FY2025; 10-Q Q1 2026</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Borrowing-base redetermination (Oct 2026).</strong> Lower price decks or negative reserve revisions shrink the base toward the $1.14B drawn. Sep 2025 amendment carved out up to $750M of BB-reduction debt as a buffer, but this is the structural pressure point.
+        <span class="src">T1: 10-Q Q1 2026 debt note</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Gas concentration + below-market IKAV contract.</strong> ~70% gas by volume (Q1 2026); inherited a firm sale of ~282 Bbtu through 2030 at a fixed $1.72/MMBtu, well below the ~$3.51 hedge strip &mdash; a locked revenue drag.
+        <span class="src">T1: 8-K 2026-05-07 (production mix); 10-Q Q1 2026 Note 10 (IKAV commitment)</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Fully floating-rate debt.</strong> No rate hedges; 100bp on ~$1.14B is ~$11.5M/yr of CAD. Effective rate 7.7%.
+        <span class="src">T1: 10-K FY2025 interest rate risk</span>
+      </div>
+    </li>
+    <li>
+      <div>
+        <strong>Integration of three basins in &lt;18 months</strong> plus ongoing purchase-price adjustments and the Deep Anadarko write-down. Execution risk, not solvency.
+        <span class="src">T1: 10-K FY2025</span>
+      </div>
+    </li>
+  </ol>
+
+  <h2>Abbreviated Financials</h2>
+  <table class="fin-table">
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>FY2024</th>
+        <th>FY2025</th>
+        <th>Q1 2026</th>
+        <th style="text-align:left">Source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Total revenue</td><td>$969.6M</td><td>$1,175.4M</td><td>$285.9M</td><td class="src-cell">T1: 10-K / 10-Q (XBRL)</td></tr>
+      <tr><td>Adjusted EBITDA</td><td>$598.5M</td><td>$593.3M</td><td>$194.6M</td><td class="src-cell">T1: recon tables</td></tr>
+      <tr><td>Cash from operations</td><td>$505.3M</td><td>$507.0M</td><td>$170.3M</td><td class="src-cell">T1: CF statements (XBRL)</td></tr>
+      <tr><td>Net income (loss)</td><td>$185.2M</td><td>$143.0M</td><td>($35.0M)*</td><td class="src-cell">T1: income stmt (XBRL)</td></tr>
+      <tr><td>Development capex</td><td>$239.4M</td><td>$251.9M</td><td>~$75M</td><td class="src-cell">T1: CF / MD&amp;A</td></tr>
+      <tr><td>Cash Available for Distribution</td><td>~$266M</td><td>~$274.4M</td><td>~$107.4M</td><td class="src-cell">T1: MD&amp;A recon</td></tr>
+      <tr><td>Distributions paid</td><td>$309.8M</td><td>$244.5M</td><td>$89.2M</td><td class="src-cell">T1: CF statement</td></tr>
+      <tr><td>Declared distribution coverage</td><td>n/a</td><td>~1.12x</td><td>~1.0x</td><td class="src-cell">T1: derived (CAD / declared)</td></tr>
+      <tr><td>Net debt</td><td>n/a</td><td>~$1,101M</td><td>~$1,082M</td><td class="src-cell">T1: BS + XBRL</td></tr>
+      <tr><td>Net debt / Adj EBITDA</td><td>n/a</td><td>~1.9x</td><td>~1.4&ndash;1.7x est.</td><td class="src-cell">T1: derived</td></tr>
+      <tr><td>Units outstanding</td><td>103.5M (12/24)</td><td>168.2M (3/26)</td><td>168.2M</td><td class="src-cell">T1: cover pages</td></tr>
+      <tr><td>Total proved reserves</td><td>337,250 MBoe</td><td>704,732 MBoe</td><td>n/a</td><td class="src-cell">T1: 10-K reserves table</td></tr>
+      <tr><td>PV-10 (SEC pricing)</td><td>$1,890M</td><td>$3,088M</td><td>n/a</td><td class="src-cell">T1: 10-K reserves table</td></tr>
+      <tr class="note-row"><td colspan="5">* Q1 2026 net loss is a non-cash $103.8M unrealized hedge mark, not operating deterioration; CFO was $170M. [T1: 10-Q Q1 2026]</td></tr>
+    </tbody>
+  </table>
+
+  <div class="flags">
+    <div class="flag-title">Flags (do not paper over)</div>
+    <ol type="a">
+      <li>No market price / EV / peer multiples in EDGAR &mdash; valuation cannot be triangulated on primary sources alone.</li>
+      <li>No credit rating disclosed (private bank facility, likely unrated).</li>
+      <li>No FY2026 production guidance issued. FY2026 development capex budget IS disclosed in EDGAR at $315&ndash;$360M [T1: 10-K FY2025].</li>
+      <li>FY2025 CAD bottom line derived from components (XBRL inline tags obscured the total).</li>
+      <li>Hedge coverage as % of production not computable without the oil/gas production split.</li>
+      <li>$695M figure in one source slice = revolving-tranche only; $1.14B = authoritative total outstanding (revolving + term loan, XBRL LTD $1,134,520K).</li>
+    </ol>
+  </div>
+
+  <h2>Cross-Asset Lens</h2>
+  <p>
+    MNR has zero public notes or bonds, only a private bank credit facility (Truist-agented revolver + term loan, New Credit Agreement). <code>T1: cap-structure slice</code> The only expressible position is the LP unit &mdash; a variable commodity-coupon, not a mispriced credit or special situation. No fulcrum security, no covenant-stress entry point, no refi catalyst (the Feb 2025 refi retired the SOFR+650 term loan into the current combined 2029 facility). The restructuring-framework edge is not present here.
+  </p>
+
+  <h2>The Read</h2>
+  <div class="conclusion">
+    <div class="verdict-line">Pass: yield trade, not a mispricing. Two triggers that would change it.</div>
+    <p style="color:var(--ink-mid); margin-bottom:12px;">
+      Analytical stance: pass. The equity is a levered, variable commodity coupon, not a mispriced credit or a special situation. No public debt to underwrite. MNR offers a high-teens distribution yield on a cash-generative but fully commodity-and-rate-exposed MLP whose payout is the first thing to get cut, into a soft gas tape, with acquisition-counterparty secondary selling and a $100M ATM as overhang. That is a yield trade with coverage already at ~1.0x, not a research-driven mispricing. EDGAR alone cannot close the valuation (no price, no peer multiples, no credit rating).
+    </p>
+    <p style="font-size:12px; color:var(--ink-mid); margin-bottom:8px; font-weight:600;">Re-underwrite only if one of these fires:</p>
+    <ul class="triggers">
+      <li>
+        <span class="trigger-num">1</span>
+        <span><strong>October 2026 borrowing-base redetermination</strong> &mdash; if the base holds or rises despite a lower price deck, the distribution durability thesis strengthens materially.</span>
+      </li>
+      <li>
+        <span class="trigger-num">2</span>
+        <span><strong>Unit-price dislocation</strong> &mdash; a move that prices the coupon for the downside (model the distribution at a stressed strip first; coverage is already ~1.0x). Pull Tier-2 inputs first: market price, peer EV/EBITDA and EV/flowing-Boe, any credit rating, FY2026 production guidance.</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="doc-footer">
+    <span>Mach Natural Resources LP (MNR) &mdash; CIK 0001980088 &mdash; EDGAR-only run</span>
+    <span>Asterozoa Capital &mdash; 2026-06-25</span>
+  </div>
+
+</div>
+</body>
+</html>

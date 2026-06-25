@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Research and Model Engine: Built, and Proven | Asterozoa Capital</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================================
+   ASTEROZOA WALKTHROUGH DECK — SHARED CHASSIS (the style contract)
+   ----------------------------------------------------------------------------
+   This <style> block is the ONLY collision surface across slide builders.
+   Lock it; do not fork it. Content slides reuse the classes documented below.
+
+   BRAND TOKENS (Asterozoa prospect/HTML system — NOT the Excel charcoal/tan):
+     --navy        #122742   primary ink + cover ground + table headers
+     --gold-deep   #B08D3D   accent rules, kickers, section markers
+     --gold        #cbbb9e   warm gold (cover hairline, watermark glints)
+     --gold-bg     #f4efe3   soft callout fill
+     --parchment   #F1ECE0   slide ground
+     --ink         #1a1a1a   body text on light
+     --burgundy    #9C2B2B   FAIL / down / broken
+     --green-ink   #3c5a23   PASS / up / clean
+
+   TYPE:
+     Display serif  Cinzel        slide titles, hero numbers (--font-display)
+     Body sans      Montserrat    all prose (--font-body)
+     Mono           JetBrains     terminals, code, cell refs, badges (--font-mono)
+
+   SLIDE GEOMETRY:
+     Each slide = <section class="slide" id="..."> in a horizontal scroll-snap
+     track. One slide == 100vw x 100vh. Inner content lives in .slide-inner
+     (max-width 1180px, centered, generous padding). One idea per slide.
+
+   SHARED CLASSES available to content-slide builders:
+     .slide              full-viewport section (REQUIRED wrapper, scroll-snap)
+     .slide-inner        centered content column with safe padding
+     .kicker             mono uppercase eyebrow (gold)
+     .slide-title        Cinzel display title
+     .lede               intro sentence under a title
+     .conf-footer        the per-slide confidential footer (auto-styled)
+     .gold-rule          thin centered gold hairline divider
+     .chip               pill (tab names, tags) — .chip.is-engine highlights
+     .callout            gold-left-border note box
+     .callout.catch      burgundy-accent "the skill caught it" callout
+     .badge              mono pill; .badge.pass / .badge.fail / .badge.pending
+     .term               terminal card; .term.pass (green) / .term.fail (burg)
+     .placeholder        dashed-outline slot for pending content slides
+     .ph-spec            monospace storyboard-spec block inside a placeholder
+     .data-table         the house table (navy header, hairline rows)
+     .scenario-row.fulcrum  burgundy-tinted row for the downcycle/fulcrum case
+   Inline SVG diagrams use currentColor + the CSS vars so they stay themeable.
+   ========================================================================== */
+
+:root{
+  --navy:#122742;
+  --navy-soft:#1d3354;
+  --gold-deep:#B08D3D;
+  --gold:#cbbb9e;
+  --gold-bg:#f4efe3;
+  --gold-line:rgba(176,141,61,.32);
+  --gold-line-soft:rgba(176,141,61,.18);
+  --parchment:#F1ECE0;
+  --parchment-2:#f7f3ea;
+  --ink:#1a1a1a;
+  --mute:#6f6a5e;
+  --burgundy:#9C2B2B;
+  --burgundy-bg:#f7e6e2;
+  --green-ink:#3c5a23;
+  --green-bg:#eef3e5;
+  --white:#ffffff;
+  --term-bg:#0e1c2f;
+  --term-ink:#d7e2ef;
+
+  --font-display:'Cinzel',Georgia,'Times New Roman',serif;
+  --font-body:'Montserrat',-apple-system,BlinkMacSystemFont,'Helvetica Neue',Arial,sans-serif;
+  --font-mono:'JetBrains Mono','SFMono-Regular',Menlo,Consolas,monospace;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--navy);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:16px;line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+
+/* ---- HORIZONTAL SCROLL-SNAP TRACK ---------------------------------------- */
+.deck{
+  display:flex;
+  flex-flow:row nowrap;
+  height:100vh;width:100vw;
+  overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+}
+.deck::-webkit-scrollbar{display:none;}
+
+.slide{
+  position:relative;
+  flex:0 0 100vw;width:100vw;height:100vh;
+  scroll-snap-align:start;scroll-snap-stop:always;
+  background:var(--parchment);
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.slide-inner{
+  width:100%;max-width:1180px;
+  padding:64px 72px 92px;
+  margin:0 auto;
+  position:relative;z-index:2;
+}
+
+/* ---- COMMON TYPE ATOMS --------------------------------------------------- */
+.kicker{
+  font-family:var(--font-mono);font-size:12px;font-weight:600;
+  letter-spacing:.22em;text-transform:uppercase;color:var(--gold-deep);
+  margin-bottom:18px;
+}
+.slide-title{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(30px,3.4vw,46px);line-height:1.12;
+  color:var(--navy);letter-spacing:.005em;
+  margin-bottom:14px;
+}
+.slide-title .accent{color:var(--gold-deep);}
+.lede{
+  font-size:clamp(15px,1.35vw,19px);line-height:1.6;color:var(--mute);
+  max-width:760px;margin-bottom:8px;font-weight:400;
+}
+.gold-rule{
+  height:0;border:0;border-top:1px solid var(--gold-line);
+  width:120px;margin:26px 0;
+}
+.gold-rule.center{margin-left:auto;margin-right:auto;}
+
+/* ---- PER-SLIDE CONFIDENTIAL FOOTER --------------------------------------- */
+.conf-footer{
+  position:absolute;left:0;right:0;bottom:26px;
+  text-align:center;
+  font-family:var(--font-mono);font-size:10px;font-weight:500;
+  letter-spacing:.28em;text-transform:uppercase;color:var(--gold-deep);
+  opacity:.7;z-index:3;pointer-events:none;
+}
+
+/* ---- CHIPS (tab names / tags) -------------------------------------------- */
+.chip-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;}
+.chip{
+  font-family:var(--font-mono);font-size:12px;font-weight:500;
+  letter-spacing:.04em;color:var(--navy);
+  background:var(--white);border:1px solid var(--gold-line);
+  border-radius:20px;padding:7px 15px;white-space:nowrap;
+}
+.chip.is-engine{
+  background:var(--navy);color:var(--gold);border-color:var(--navy);
+  font-weight:600;
+}
+
+/* ---- CALLOUTS ------------------------------------------------------------ */
+.callout{
+  background:var(--gold-bg);border-left:4px solid var(--gold-deep);
+  border-radius:0 6px 6px 0;padding:16px 20px;
+  font-size:15px;line-height:1.62;color:var(--ink);
+}
+.callout strong{color:var(--navy);}
+.callout.catch{
+  background:var(--burgundy-bg);border-left-color:var(--burgundy);
+}
+.callout.catch strong{color:var(--burgundy);}
+.callout .catch-tag{
+  display:block;font-family:var(--font-mono);font-size:11px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--burgundy);
+  margin-bottom:8px;
+}
+
+/* ---- BADGES (gate status) ------------------------------------------------ */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font-mono);font-size:12px;font-weight:600;
+  letter-spacing:.04em;border-radius:5px;padding:5px 11px;
+  border:1px solid transparent;white-space:nowrap;
+}
+.badge.pass{background:var(--green-bg);color:var(--green-ink);border-color:rgba(60,90,35,.32);}
+.badge.fail{background:var(--burgundy-bg);color:var(--burgundy);border-color:rgba(156,43,43,.32);}
+.badge.pending{background:#efeadd;color:#8a6d2e;border-color:var(--gold-line);}
+.badge .dot{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block;}
+/* inline cell-reference token (reuse on any rule->cell slide) */
+.cellref{font-family:var(--font-mono);font-size:.82em;padding:1px 6px;border:1px solid var(--gold-line);border-radius:4px;background:var(--white);color:var(--navy);white-space:nowrap;}
+.cellref.link{color:var(--green-ink);}
+
+/* ---- PLAIN-LANGUAGE GLOSS ------------------------------------------------
+   The house "in plain terms" device. A quiet, muted side-note carrying the
+   intuition-first sentence beside (or under) a technical point. Thin gold
+   left-tick, smaller italic muted ink — NOT a loud callout. Reusable on any
+   slide; the .plain-lbl is an optional tiny eyebrow ("In plain terms"). */
+.plain{
+  font-size:13.5px;line-height:1.55;color:var(--mute);font-style:italic;
+  border-left:2px solid var(--gold-line);padding-left:14px;
+  margin-top:10px;max-width:760px;
+}
+.plain .plain-lbl{
+  display:block;font-style:normal;font-family:var(--font-mono);
+  font-size:9.5px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--gold-deep);margin-bottom:4px;
+}
+.plain strong{color:var(--navy);font-style:normal;font-weight:600;}
+.plain.tight{margin-top:6px;font-size:12.5px;}
+
+/* ---- TERMINAL CARDS ------------------------------------------------------ */
+.term{
+  background:var(--term-bg);border-radius:8px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.08);
+  font-family:var(--font-mono);font-size:13px;line-height:1.7;
+  box-shadow:0 18px 40px -22px rgba(18,39,66,.55);
+}
+.term .bar{
+  display:flex;align-items:center;gap:7px;
+  padding:9px 14px;background:rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.term .bar i{width:11px;height:11px;border-radius:50%;display:inline-block;background:#3c4a5e;font-style:normal;}
+.term .bar .ttl{margin-left:8px;font-size:11px;letter-spacing:.08em;color:#7d8da4;text-transform:uppercase;}
+.term .body{padding:16px 18px;color:var(--term-ink);}
+.term .body .ok{color:#7fc06a;}
+.term .body .err{color:#e4736b;}
+.term .body .dim{color:#7d8da4;}
+.term.pass{border-color:rgba(127,192,106,.30);}
+.term.fail{border-color:rgba(228,115,107,.30);}
+
+/* ---- DATA TABLE (house table) -------------------------------------------- */
+.data-table{width:100%;border-collapse:collapse;font-size:14px;background:var(--white);
+  box-shadow:0 12px 30px -24px rgba(18,39,66,.5);border-radius:6px;overflow:hidden;}
+.data-table thead th{
+  background:var(--navy);color:var(--white);text-align:left;
+  padding:11px 14px;font-weight:600;font-size:12.5px;
+  letter-spacing:.03em;
+}
+.data-table thead th.num{text-align:right;}
+.data-table tbody td{padding:10px 14px;border-bottom:1px solid #ece6d8;vertical-align:middle;}
+.data-table tbody td.num{text-align:right;font-family:var(--font-mono);font-size:13px;}
+.data-table tbody tr:nth-child(even){background:var(--parchment-2);}
+.data-table tbody tr:last-child td{border-bottom:1px solid var(--gold-line);}
+.scenario-row.fulcrum td{background:var(--burgundy-bg)!important;}
+.scenario-row.fulcrum td:first-child{font-weight:600;color:var(--burgundy);}
+.scenario-row.bull td:first-child{font-weight:600;color:var(--green-ink);}
+
+/* ---- PLACEHOLDER SLOTS (pending content slides) -------------------------- */
+.placeholder{
+  width:100%;max-width:900px;margin:24px auto 0;
+  border:2px dashed var(--gold-line);border-radius:12px;
+  background:repeating-linear-gradient(135deg,transparent,transparent 18px,rgba(176,141,61,.035) 18px,rgba(176,141,61,.035) 36px),var(--parchment-2);
+  padding:34px 38px;
+}
+.placeholder .ph-flag{
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);
+  margin-bottom:14px;display:flex;align-items:center;gap:9px;
+}
+.placeholder .ph-flag .pending-pill{
+  background:#efeadd;border:1px solid var(--gold-line);border-radius:4px;
+  padding:2px 8px;color:#8a6d2e;letter-spacing:.1em;
+}
+.placeholder .ph-spec{
+  font-family:var(--font-mono);font-size:12.5px;line-height:1.7;color:#4a4636;
+  background:var(--white);border:1px solid var(--gold-line-soft);border-radius:6px;
+  padding:16px 18px;white-space:pre-wrap;
+}
+.placeholder .ph-spec .lbl{color:var(--gold-deep);font-weight:600;}
+
+/* ---- COVER SLIDE (navy ground) ------------------------------------------- */
+#cover{background:var(--navy);}
+#cover .slide-inner{max-width:980px;text-align:left;}
+#cover .cover-logo{height:54px;width:auto;display:block;margin-bottom:34px;}
+#cover .kicker{color:var(--gold);}
+#cover h1.cover-title{
+  font-family:var(--font-display);font-weight:700;color:var(--white);
+  font-size:clamp(36px,5vw,64px);line-height:1.08;letter-spacing:.01em;
+  margin:8px 0 4px;
+}
+#cover h1.cover-title .accent{color:var(--gold-deep);}
+#cover .cover-sub{
+  font-size:clamp(16px,1.5vw,21px);color:#cfc7b6;font-weight:300;
+  max-width:680px;margin:18px 0 0;line-height:1.55;
+}
+#cover .cover-rule{border-top:1px solid var(--gold-line);width:160px;margin:34px 0 28px;}
+#cover .cover-meta{
+  font-family:var(--font-mono);font-size:12.5px;letter-spacing:.06em;
+  color:#9a9382;line-height:2;
+}
+#cover .cover-meta .stamp{color:var(--gold);}
+#cover .starfish-wm{
+  position:absolute;right:-90px;bottom:-90px;width:460px;height:auto;
+  opacity:.07;pointer-events:none;z-index:1;
+}
+#cover .conf-footer{color:var(--gold);opacity:.55;}
+
+/* ---- WHY SLIDE (hero pull-quote on parchment) ---------------------------- */
+#why .slide-inner{max-width:1000px;text-align:center;}
+#why .pull{
+  font-family:var(--font-display);font-weight:600;color:var(--navy);
+  font-size:clamp(28px,4vw,52px);line-height:1.22;letter-spacing:.005em;
+  position:relative;display:inline-block;
+}
+#why .pull .q{color:var(--gold-deep);font-weight:700;}
+#why .pull-attrib{
+  font-family:var(--font-mono);font-size:13px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--mute);margin-top:26px;
+}
+#why .why-answer{
+  font-size:clamp(16px,1.6vw,21px);color:var(--ink);font-weight:500;
+  max-width:680px;margin:30px auto 0;line-height:1.55;
+}
+#why .why-answer .lift{color:var(--gold-deep);font-weight:700;}
+
+/* ---- CLOSE SLIDE --------------------------------------------------------- */
+#close{background:var(--navy);}
+#close .slide-inner{max-width:920px;text-align:center;}
+#close .kicker{color:var(--gold);}
+#close h2.close-title{
+  font-family:var(--font-display);font-weight:700;color:var(--white);
+  font-size:clamp(30px,3.6vw,48px);line-height:1.16;margin-bottom:6px;
+}
+#close h2.close-title .accent{color:var(--gold-deep);}
+#close .close-points{
+  list-style:none;margin:34px auto 0;max-width:680px;text-align:left;
+  display:flex;flex-direction:column;gap:16px;
+}
+#close .close-points li{
+  font-size:clamp(15px,1.4vw,19px);color:#dcd5c6;line-height:1.5;
+  padding-left:30px;position:relative;font-weight:300;
+}
+#close .close-points li::before{
+  content:"";position:absolute;left:0;top:.6em;
+  width:10px;height:10px;border:1.5px solid var(--gold-deep);
+  transform:rotate(45deg);
+}
+#close .close-points li strong{color:var(--white);font-weight:600;}
+#close .close-rule{border-top:1px solid var(--gold-line);width:160px;margin:40px auto 26px;}
+#close .close-logo{height:42px;width:auto;opacity:.92;margin:0 auto;display:block;}
+#close .conf-footer{color:var(--gold);opacity:.55;}
+#close .starfish-wm{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:540px;height:auto;opacity:.05;pointer-events:none;z-index:1;
+}
+
+/* ---- WHAT-IT-IS FLOW (input -> engine -> output) ------------------------- */
+#what-it-is .slide-inner{max-width:1180px;}
+.flow-wrap{margin:14px 0 8px;}
+.flow-tabs-label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--gold-deep);margin:26px 0 12px;
+}
+
+/* ---- CLF PROOF LAYOUT ---------------------------------------------------- */
+#clf-proof .slide-inner{max-width:1180px;}
+.clf-grid{
+  display:grid;grid-template-columns:1.18fr .92fr;gap:30px;align-items:start;
+  margin-top:8px;
+}
+.clf-grid .render-card{
+  background:var(--white);border:1px solid var(--gold-line);border-radius:8px;
+  padding:10px;box-shadow:0 16px 40px -28px rgba(18,39,66,.6);
+}
+.clf-grid .render-card img{width:100%;height:auto;display:block;border-radius:4px;}
+.clf-grid .render-cap{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.08em;
+  color:var(--mute);text-align:center;padding:8px 4px 4px;text-transform:uppercase;
+}
+.clf-right{display:flex;flex-direction:column;gap:16px;}
+.clf-scenarios{font-size:13px;}
+.clf-scenarios td:first-child,.clf-scenarios th:first-child{padding-left:14px;}
+.gate-badge-row{display:flex;flex-wrap:wrap;gap:9px;}
+
+/* ---- PROGRESS / DOT NAV -------------------------------------------------- */
+.dotnav{
+  position:fixed;left:50%;bottom:9px;transform:translateX(-50%);
+  display:flex;gap:10px;z-index:50;
+  background:rgba(18,39,66,.55);backdrop-filter:blur(6px);
+  border:1px solid rgba(203,187,158,.28);border-radius:20px;
+  padding:7px 13px;
+}
+.dotnav button{
+  width:9px;height:9px;border-radius:50%;border:0;cursor:pointer;padding:0;
+  background:rgba(203,187,158,.40);transition:all .2s;
+}
+.dotnav button:hover{background:var(--gold);}
+.dotnav button.active{background:var(--gold-deep);width:22px;border-radius:5px;}
+
+.arrownav{
+  position:fixed;bottom:8px;z-index:50;
+  width:36px;height:36px;border-radius:50%;cursor:pointer;
+  background:rgba(18,39,66,.55);backdrop-filter:blur(6px);
+  border:1px solid rgba(203,187,158,.28);color:var(--gold);
+  font-family:var(--font-body);font-size:18px;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+}
+.arrownav:hover{background:var(--navy);color:var(--white);}
+.arrownav.prev{left:18px;}
+.arrownav.next{right:18px;}
+
+.progressbar{
+  position:fixed;top:0;left:0;height:3px;background:var(--gold-deep);
+  z-index:60;width:0;transition:width .25s ease;
+}
+
+/* ---- RESEARCH ENGINE SLIDES ---------------------------------------------- */
+
+/* R1: "The Research Engine" — three-pass flow diagram */
+#research-engine .slide-inner{max-width:1180px;}
+.pass-row{
+  display:grid;grid-template-columns:96px 1fr;gap:0 18px;
+  align-items:stretch;margin-top:4px;
+}
+.pass-row+.pass-row{margin-top:12px;}
+.pass-num{
+  display:flex;align-items:center;justify-content:center;
+  background:var(--navy);border-radius:8px;
+  font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
+  padding:12px 8px;min-height:64px;text-align:center;line-height:1.4;
+}
+.pass-body{
+  background:var(--white);border:1px solid var(--gold-line);border-radius:8px;
+  padding:12px 16px;display:flex;flex-direction:column;justify-content:center;
+}
+.pass-body .pass-title{
+  font-family:var(--font-display);font-size:15px;font-weight:700;
+  color:var(--navy);margin-bottom:3px;
+}
+.pass-body .pass-desc{font-size:13px;line-height:1.5;color:var(--ink);}
+.pass-body .pass-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px;}
+.pass-body .pass-tags .tag{
+  font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+  letter-spacing:.08em;border-radius:4px;padding:3px 9px;
+  background:var(--parchment-2);border:1px solid var(--gold-line);color:var(--navy);
+}
+.pass-connector{
+  grid-column:1;grid-row:auto;
+  display:flex;justify-content:center;padding:3px 0;
+}
+.pass-connector svg{display:block;}
+
+/* R2: Source tiers + modes */
+#research-modes .slide-inner{max-width:1180px;}
+.modes-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:22px 32px;
+  margin-top:16px;
+}
+.tier-block{padding:0;}
+.tier-block .tier-hdr{
+  display:flex;align-items:center;gap:10px;margin-bottom:8px;
+}
+.tier-badge{
+  font-family:var(--font-mono);font-size:10px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;border-radius:4px;
+  padding:4px 10px;white-space:nowrap;flex:0 0 auto;
+}
+.tier-badge.t1{background:var(--green-bg);color:var(--green-ink);border:1px solid rgba(60,90,35,.28);}
+.tier-badge.t2{background:#eef2fa;color:#2c4fa0;border:1px solid rgba(44,79,160,.28);}
+.tier-badge.t3{background:var(--burgundy-bg);color:var(--burgundy);border:1px solid rgba(156,43,43,.28);}
+.tier-badge.mode{background:var(--gold-bg);color:#7a5c1e;border:1px solid var(--gold-line);}
+.tier-hdr .tier-name{font-weight:600;font-size:14px;color:var(--navy);}
+.tier-items{font-size:13px;line-height:1.6;color:var(--ink);}
+.tier-items li{list-style:none;padding-left:14px;position:relative;margin-bottom:2px;}
+.tier-items li::before{content:"–";position:absolute;left:0;color:var(--gold-deep);}
+.mode-row{
+  display:flex;gap:10px;flex-direction:column;
+}
+.mode-card{
+  background:var(--white);border:1px solid var(--gold-line);border-radius:7px;
+  padding:10px 14px;display:flex;align-items:flex-start;gap:12px;
+}
+.mode-card .mc-tag{
+  font-family:var(--font-mono);font-size:10px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;color:#7a5c1e;
+  background:var(--gold-bg);border:1px solid var(--gold-line);
+  border-radius:4px;padding:3px 9px;white-space:nowrap;flex:0 0 auto;margin-top:1px;
+}
+.mode-card .mc-body{font-size:13px;line-height:1.5;color:var(--ink);}
+.mode-card .mc-body strong{color:var(--navy);}
+
+/* R3: MNR verifier */
+#research-verifier .slide-inner{max-width:1180px;}
+.verif-grid{
+  display:grid;grid-template-columns:1fr 1.08fr;gap:24px;
+  align-items:start;margin-top:10px;
+}
+.verdict-panel{
+  background:var(--navy);border-radius:10px;padding:20px 22px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.verdict-panel .vp-label{
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:2px;
+}
+.verdict-panel .vp-ticker{
+  font-family:var(--font-display);font-size:36px;font-weight:700;
+  color:var(--white);letter-spacing:.02em;line-height:1;
+}
+.verdict-panel .vp-co{
+  font-size:12px;color:#9eabb8;font-weight:400;margin-top:2px;
+}
+.verdict-panel .vp-verdict{
+  margin-top:6px;
+  font-family:var(--font-display);font-size:17px;font-weight:700;
+  color:var(--gold-deep);line-height:1.3;
+}
+.verdict-panel .vp-sub{font-size:12.5px;color:#adb8c6;line-height:1.55;margin-top:3px;}
+.verdict-panel .vp-findings{display:flex;flex-direction:column;gap:7px;margin-top:4px;}
+.verdict-panel .vp-finding{
+  font-size:12.5px;color:#dcd5c6;line-height:1.5;
+  border-left:3px solid var(--gold-deep);padding-left:10px;
+}
+.verdict-panel .vp-finding.caught{border-left-color:var(--burgundy);color:#f0c5c0;}
+.verif-right{display:flex;flex-direction:column;gap:14px;}
+.check-row{
+  display:flex;gap:11px;align-items:flex-start;
+  padding:9px 14px;border-radius:7px;
+  background:var(--white);border:1px solid var(--gold-line);
+}
+.check-row .chk-tag{
+  font-family:var(--font-mono);font-size:10.5px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;border-radius:4px;
+  padding:3px 9px;white-space:nowrap;flex:0 0 auto;margin-top:1px;
+}
+.check-row .chk-tag.ok{background:var(--green-bg);color:var(--green-ink);border:1px solid rgba(60,90,35,.28);}
+.check-row .chk-tag.fix{background:var(--burgundy-bg);color:var(--burgundy);border:1px solid rgba(156,43,43,.28);}
+.check-row .chk-body{font-size:13px;line-height:1.5;color:var(--ink);}
+.check-row .chk-body strong{color:var(--navy);}
+
+/* ---- RESPONSIVE NUDGES --------------------------------------------------- */
+@media (max-width:1024px){
+  .slide-inner{padding:48px 44px 84px;}
+  .clf-grid{grid-template-columns:1fr;gap:20px;}
+  .modes-grid{grid-template-columns:1fr;gap:16px;}
+  .verif-grid{grid-template-columns:1fr;gap:16px;}
+}
+@media (max-height:720px){
+  .slide-inner{padding-top:40px;padding-bottom:72px;}
+  .slide-title{font-size:clamp(26px,3vw,38px);}
+}
+</style>
+</head>
+<body>
+
+<div class="progressbar" id="progressbar"></div>
+
+<div class="deck" id="deck">
+
+  <!-- ====================================================================
+       SLIDE 1 — COVER  [BUILT]
+       ==================================================================== -->
+  <section class="slide" id="cover" data-title="Cover">
+    <img class="starfish-wm" src="assets/starfish-white.png" alt="">
+    <div class="slide-inner">
+      <img class="cover-logo" src="assets/asterozoa-white.png" alt="Asterozoa Capital">
+      <div class="kicker">Asterozoa Capital &middot; Research &amp; Model Engine Walkthrough</div>
+      <h1 class="cover-title">Research and Model:<br>Built, <span class="accent">and Proven.</span></h1>
+      <p class="cover-sub">How we surface primary-source research and build institutional models from filings &mdash; and how we prove both before they ship.</p>
+      <div class="cover-rule"></div>
+      <div class="cover-meta">
+        ASTEROZOA CAPITAL &nbsp;&middot;&nbsp; RESEARCH SUITE<br>
+        2026&#8209;06&#8209;18 &nbsp;&middot;&nbsp; <span class="stamp">ASTEROZOA CAPITAL &mdash; PROPRIETARY</span>
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 2 — WHY  [BUILT]
+       The stakes: the verification bar IS the product.
+       ==================================================================== -->
+  <section class="slide" id="why" data-title="Why">
+    <div class="slide-inner">
+      <div class="kicker">The Bar</div>
+      <p class="pull"><span class="q">&ldquo;</span>Is it more work to check this<br>than to just do it myself?<span class="q">&rdquo;</span></p>
+      <div class="pull-attrib">&mdash; the question every model has to answer</div>
+      <hr class="gold-rule center">
+      <p class="why-answer">If checking the model costs more than rebuilding it, the model is worthless. So the verification rigor isn&rsquo;t a feature of the product. <span class="lift">The verification rigor IS the product.</span></p>
+      <p class="plain" style="margin:18px auto 0;text-align:left;display:inline-block;">
+        <span class="plain-lbl">In plain terms</span>
+        A model you can&rsquo;t trust on sight is worse than no model: you have to redo all the math just to believe it. So the real deliverable isn&rsquo;t the spreadsheet. <strong>It&rsquo;s the proof that the spreadsheet is right.</strong>
+      </p>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 3 — WHAT-IT-IS  [BUILT]
+       Ticker in -> 8-tab institutional model out.
+       ==================================================================== -->
+  <section class="slide" id="what-it-is" data-title="What it is">
+    <div class="slide-inner">
+      <div class="kicker">The Skill, in One Picture</div>
+      <h2 class="slide-title">A ticker goes in. An <span class="accent">institutional model</span> comes out.</h2>
+      <p class="lede">No template-fill, no copy-paste. Filings drive an engine; the engine builds every tab from primary sources &mdash; the company&rsquo;s own SEC reports.</p>
+      <p class="plain" style="margin-top:12px;">
+        <span class="plain-lbl">In plain terms</span>
+        You hand it a stock ticker. It reads the company&rsquo;s public filings and writes the whole financial model itself &mdash; line by line, sourced from those documents. <strong>It is not filling in a blank form; it is doing the analyst&rsquo;s build.</strong>
+      </p>
+
+      <!-- input -> engine -> output flow (inline SVG) -->
+      <div class="flow-wrap">
+        <svg viewBox="0 0 1040 168" width="100%" role="img" aria-label="Input ticker into the model engine, out comes a multi-tab institutional model" style="display:block;">
+          <defs>
+            <marker id="arrowhead" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="#B08D3D"></path>
+            </marker>
+          </defs>
+
+          <!-- INPUT -->
+          <rect x="8" y="44" width="208" height="80" rx="10" fill="#ffffff" stroke="#B08D3D" stroke-width="1.4"></rect>
+          <text x="112" y="74" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" letter-spacing="2" fill="#6f6a5e">INPUT</text>
+          <text x="112" y="103" text-anchor="middle" font-family="'Cinzel',serif" font-size="30" font-weight="700" fill="#122742">CLF</text>
+
+          <!-- arrow 1 -->
+          <line x1="222" y1="84" x2="312" y2="84" stroke="#B08D3D" stroke-width="2" marker-end="url(#arrowhead)"></line>
+          <text x="267" y="74" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10.5" letter-spacing="1" fill="#6f6a5e">filings</text>
+
+          <!-- ENGINE -->
+          <rect x="324" y="22" width="248" height="124" rx="12" fill="#122742" stroke="#B08D3D" stroke-width="1.6"></rect>
+          <text x="448" y="54" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="12" letter-spacing="3" fill="#cbbb9e">THE ENGINE</text>
+          <text x="448" y="84" text-anchor="middle" font-family="'Cinzel',serif" font-size="20" font-weight="700" fill="#ffffff">Scenario&#8209;first</text>
+          <text x="448" y="110" text-anchor="middle" font-family="'Montserrat',sans-serif" font-size="12" fill="#cfc7b6">CHOOSE / Live columns</text>
+          <text x="448" y="129" text-anchor="middle" font-family="'Montserrat',sans-serif" font-size="11" fill="#9a9382">cash&#8209;from&#8209;ops over adj. EBITDA</text>
+
+          <!-- arrow 2 -->
+          <line x1="578" y1="84" x2="668" y2="84" stroke="#B08D3D" stroke-width="2" marker-end="url(#arrowhead)"></line>
+          <text x="623" y="74" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10.5" letter-spacing="1" fill="#6f6a5e">build</text>
+
+          <!-- OUTPUT -->
+          <rect x="680" y="44" width="352" height="80" rx="10" fill="#f4efe3" stroke="#B08D3D" stroke-width="1.4"></rect>
+          <text x="856" y="74" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="13" letter-spacing="2" fill="#6f6a5e">OUTPUT</text>
+          <text x="856" y="103" text-anchor="middle" font-family="'Cinzel',serif" font-size="22" font-weight="700" fill="#122742">An 8&#8209;tab workbook</text>
+        </svg>
+      </div>
+
+      <div class="flow-tabs-label">The tabs it builds</div>
+      <div class="chip-row">
+        <span class="chip">DISCLAIMER</span>
+        <span class="chip">Key Assumptions</span>
+        <span class="chip">P&amp;L Ramp</span>
+        <span class="chip is-engine">Model engine</span>
+        <span class="chip">Valuation</span>
+        <span class="chip">Actuals</span>
+        <span class="chip">Cap Structure</span>
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 3b — FOUR-IDEAS  [BUILT — added 2026-06-18 clarity pass]
+       Plain-language analogy slide. Gives the reader intuition for the four
+       densest ideas BEFORE slide 4 shows them as cells. One analogy each.
+       ==================================================================== -->
+  <section class="slide" id="four-ideas" data-title="How to read it">
+    <div class="slide-inner">
+      <div class="kicker">Four Habits Behind Every Build</div>
+      <h2 class="slide-title">Four rules that make a model <span class="accent">trustworthy on sight</span>.</h2>
+      <p class="lede">Each one is a working analyst&rsquo;s habit. Here&rsquo;s the everyday version of each &mdash; then you&rsquo;ll see it as a real cell.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 30px;margin-top:20px;">
+
+        <!-- IDEA 1 — font-color protocol -->
+        <div>
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px;">
+            <span style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--navy);">Color tells you where a number came from.</span>
+          </div>
+          <p class="plain tight" style="border-left-color:var(--gold-deep);">
+            Like sorting receipts by source: <strong style="color:#2b4fd6;">blue</strong> = we typed it in from a filing, <strong style="color:var(--green-ink);">green</strong> = it&rsquo;s pulled from another tab, <strong style="color:var(--ink);">black</strong> = the sheet calculated it. Any number&rsquo;s origin is readable at a glance. <span style="font-style:normal;color:var(--mute);">(The font-color protocol.)</span>
+          </p>
+        </div>
+
+        <!-- IDEA 2 — scenario toggle -->
+        <div>
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px;">
+            <span style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--navy);">Change one setting, the whole story re-tells.</span>
+          </div>
+          <p class="plain tight" style="border-left-color:var(--gold-deep);">
+            Like a thermostat for the business case: turn one dial &mdash; the financing plan, say &mdash; and every downstream number updates to match. Assumptions live in <strong>one block</strong>, never scattered. <span style="font-style:normal;color:var(--mute);">(Scenario toggles off one assumption block.)</span>
+          </p>
+        </div>
+
+        <!-- IDEA 3 — cash over adjusted EBITDA -->
+        <div>
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px;">
+            <span style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--navy);">Trust the cash, not the headline.</span>
+          </div>
+          <p class="plain tight" style="border-left-color:var(--gold-deep);">
+            We don&rsquo;t take the polished profit number on faith &mdash; we trace it down to the cash that actually hit the bank. EBITDA (earnings before interest, taxes, depreciation, amortization) is the number management prefers to show; <strong>cash from operations</strong> is the money that&rsquo;s really there. <span style="font-style:normal;color:var(--mute);">(Cash from operations over adjusted EBITDA.)</span>
+          </p>
+        </div>
+
+        <!-- IDEA 4 — per-instrument debt -->
+        <div>
+          <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:3px;">
+            <span style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--navy);">Every loan gets its own row.</span>
+          </div>
+          <p class="plain tight" style="border-left-color:var(--gold-deep);">
+            Like keeping separate bills instead of one lumped total: each loan has its own line, its own due date, its own interest. You can see exactly when each one comes due and what it costs. <span style="font-style:normal;color:var(--mute);">(Per-instrument debt schedule with day-count interest.)</span>
+          </p>
+        </div>
+
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 4 — RULE-TO-OUTPUT  [PLACEHOLDER — pending fll-builder]
+       ==================================================================== -->
+  <section class="slide" id="rule-to-output" data-title="Rule to output">
+    <div class="slide-inner">
+      <div class="kicker">The Core &middot; How a Rule Becomes a Cell</div>
+      <h2 class="slide-title">A written rule becomes a <span class="accent">working cell</span>.</h2>
+      <p class="lede">Same four habits, now made literal: each line of the written spec reliably produces a specific cell you can point at in the workbook. Shown on FLL (Full House Resorts).</p>
+
+      <!-- four rule -> cell pairs in a 2x2 grid.  each card: SKILL.md rule (mono,
+           gold-left callout) -> down-arrow -> the FLL artifact it deterministically
+           produces.  reuses .callout / .chip / the #arrowhead marker. -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px 28px;margin-top:18px;">
+
+        <!-- PAIR 1 — scenario toggle -->
+        <div>
+          <div class="callout" style="padding:11px 15px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:4px;">Skill rule</span>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--navy);">&ldquo;Scenario toggles off ONE assumption block.&rdquo;</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="display:block;margin:4px 0 4px 18px;">
+            <line x1="8" y1="1" x2="8" y2="11" stroke="var(--gold-deep)" stroke-width="2" marker-end="url(#arrowhead)"></line>
+          </svg>
+          <div style="padding-left:2px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:3px;">FLL cell</span>
+            <span style="font-size:13px;color:var(--ink);line-height:1.45;"><code style="font-family:var(--font-mono);color:var(--navy);background:var(--white);border:1px solid var(--gold-line);border-radius:3px;padding:1px 5px;">Key&nbsp;Assumptions!D5</code> &times; <code style="font-family:var(--font-mono);color:var(--navy);background:var(--white);border:1px solid var(--gold-line);border-radius:3px;padding:1px 5px;">D6</code> drive CHOOSE / Live columns. Flip one cell &rarr; <strong style="color:var(--navy);">12 coherent worlds.</strong></span>
+          </div>
+        </div>
+
+        <!-- PAIR 2 — cash over EBITDA -->
+        <div>
+          <div class="callout" style="padding:11px 15px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:4px;">Skill rule</span>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--navy);">&ldquo;Cash from operations over adjusted EBITDA.&rdquo;</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="display:block;margin:4px 0 4px 18px;">
+            <line x1="8" y1="1" x2="8" y2="11" stroke="var(--gold-deep)" stroke-width="2" marker-end="url(#arrowhead)"></line>
+          </svg>
+          <div style="padding-left:2px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:3px;">FLL cell &mdash; Model tab</span>
+            <span style="font-size:13px;color:var(--ink);line-height:1.45;">A step-by-step <strong style="color:var(--navy);">walk from headline earnings down to cash from operations</strong> (the Adj&nbsp;EBITDA&nbsp;&rarr;&nbsp;CFO bridge); <strong style="color:var(--navy);">cash from operations less capex</strong> is the number we trust. The walk ties to the company&rsquo;s reported cash to within <code style="font-family:var(--font-mono);color:var(--green-ink);background:var(--white);border:1px solid var(--gold-line);border-radius:3px;padding:1px 5px;">~0</code>.</span>
+          </div>
+        </div>
+
+        <!-- PAIR 3 — per-instrument debt -->
+        <div>
+          <div class="callout" style="padding:11px 15px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:4px;">Skill rule</span>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--navy);">&ldquo;Per-instrument debt schedule, day-count interest.&rdquo;</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="display:block;margin:4px 0 4px 18px;">
+            <line x1="8" y1="1" x2="8" y2="11" stroke="var(--gold-deep)" stroke-width="2" marker-end="url(#arrowhead)"></line>
+          </svg>
+          <div style="padding-left:2px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:3px;">FLL cell &mdash; Cap Structure tab</span>
+            <span style="font-size:13px;color:var(--ink);line-height:1.45;">Each loan its own line, with the true return a buyer earns today (its yield to maturity, or YTM) &mdash; the 8.25% notes trading at <code style="font-family:var(--font-mono);color:var(--navy);background:var(--white);border:1px solid var(--gold-line);border-radius:3px;padding:1px 5px;">91.3</code>&cent;&nbsp;on&nbsp;the&nbsp;dollar work out to a <code style="font-family:var(--font-mono);color:var(--navy);background:var(--white);border:1px solid var(--gold-line);border-radius:3px;padding:1px 5px;">14.33%</code> yield.</span>
+          </div>
+        </div>
+
+        <!-- PAIR 4 — font-color protocol -> the cell legend -->
+        <div>
+          <div class="callout" style="padding:11px 15px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:4px;">Skill rule</span>
+            <span style="font-family:var(--font-mono);font-size:12px;color:var(--navy);">&ldquo;Font-color protocol: blue input / green link / black formula.&rdquo;</span>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" style="display:block;margin:4px 0 4px 18px;">
+            <line x1="8" y1="1" x2="8" y2="11" stroke="var(--gold-deep)" stroke-width="2" marker-end="url(#arrowhead)"></line>
+          </svg>
+          <div style="padding-left:2px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:9.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin-bottom:5px;">FLL cell legend &mdash; the auditor reads provenance from color</span>
+            <div class="chip-row" style="gap:7px;">
+              <span class="chip" style="font-size:11px;padding:4px 10px;color:#2b4fd6;border-color:#2b4fd6;">&#9632;&nbsp;blue&nbsp;=&nbsp;input</span>
+              <span class="chip" style="font-size:11px;padding:4px 10px;color:var(--green-ink);border-color:var(--green-ink);">&#9632;&nbsp;green&nbsp;=&nbsp;cross-sheet&nbsp;link</span>
+              <span class="chip" style="font-size:11px;padding:4px 10px;color:var(--ink);">&#9632;&nbsp;black&nbsp;=&nbsp;formula</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 5 — LOCKDOWN  [PLACEHOLDER — pending workflow]
+       ==================================================================== -->
+  <section class="slide" id="lockdown" data-title="Lockdown">
+    <div class="slide-inner">
+      <div class="kicker">How We Hardened the Skill</div>
+      <h2 class="slide-title">The multi&#8209;model <span class="accent">adversarial lockdown</span>.</h2>
+      <p class="lede">We didn&rsquo;t trust one model to grade its own homework. We made several tear it apart, blind.</p>
+      <div style="display:flex;align-items:stretch;gap:9px;margin-top:24px;">
+        <div style="flex:1;background:var(--navy);border-radius:9px;padding:15px 14px;">
+          <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--gold);margin-bottom:6px;">STEP 1</div>
+          <div style="color:#fff;font-weight:600;font-size:13.5px;margin-bottom:5px;">Point 3 AIs at our own tool</div>
+          <div style="font-size:11.5px;color:#aeb9c9;line-height:1.45;">Claude (6 lenses) &middot; Codex &middot; DeepSeek &mdash; blind, none sees the others.</div>
+        </div>
+        <div style="flex:1;background:var(--navy);border-radius:9px;padding:15px 14px;">
+          <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--gold);margin-bottom:6px;">STEP 2</div>
+          <div style="color:#fff;font-weight:600;font-size:13.5px;margin-bottom:5px;">Keep only what they agree on</div>
+          <div style="font-size:11.5px;color:#aeb9c9;line-height:1.45;">A flaw two-plus models find independently is real. That becomes the to-fix list.</div>
+        </div>
+        <div style="flex:1;background:var(--navy);border-radius:9px;padding:15px 14px;">
+          <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--gold);margin-bottom:6px;">STEP 3</div>
+          <div style="color:#fff;font-weight:600;font-size:13.5px;margin-bottom:5px;">Write the rules as machine checks</div>
+          <div style="font-size:11.5px;color:#aeb9c9;line-height:1.45;">Every rule becomes a gate in <span style="font-family:var(--font-mono);">model_gate.py</span> &mdash; pass/fail, no opinion.</div>
+        </div>
+        <div style="flex:1;background:var(--navy);border-radius:9px;padding:15px 14px;">
+          <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--gold);margin-bottom:6px;">STEP 4</div>
+          <div style="color:#fff;font-weight:600;font-size:13.5px;margin-bottom:5px;">Turn the critics on the finished tool</div>
+          <div style="font-size:11.5px;color:#aeb9c9;line-height:1.45;">They attacked the checker itself &mdash; found 15 more holes, we closed each. <strong style="color:var(--gold);">150 tests pass.</strong></div>
+        </div>
+      </div>
+      <div class="plain"><span class="plain-lbl">In plain terms</span>Like hiring three rival inspectors to break your own work, writing down everything they find as a checklist a machine runs &mdash; then turning the inspectors loose on the machine itself. <strong>A flaw only counts when more than one finds it independently.</strong></div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 6 — THE-TESTS  [PLACEHOLDER — pending workflow]
+       ==================================================================== -->
+  <section class="slide" id="the-tests" data-title="The tests">
+    <div class="slide-inner">
+      <div class="kicker">model_gate.py &middot; In Plain Language</div>
+      <h2 class="slide-title">Every model runs a <span class="accent">gate chain</span> before it ships.</h2>
+      <p class="lede">Each gate: what it looks for, why it matters. Blocking gates stop the ship; warnings flag for the human.</p>
+      <div class="callout" style="margin-top:16px;">Until now this was three scripts a person ran by hand &mdash; and the summary could print <strong>&ldquo;CLEAN &mdash; ship-eligible&rdquo;</strong> on a model that was never even recalculated. Now it&rsquo;s <strong>one gate that fails closed.</strong></div>
+      <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:13px;align-items:flex-start;"><span class="badge fail" style="flex:0 0 auto;">BLOCK</span><div style="font-size:14.5px;"><strong style="color:var(--navy);">Was the math actually run?</strong> The numbers must be calculated by Excel itself, with proof it happened (a changed sentinel cell + a fresh save) &mdash; not a stale file.</div></div>
+        <div style="display:flex;gap:13px;align-items:flex-start;"><span class="badge fail" style="flex:0 0 auto;">BLOCK</span><div style="font-size:14.5px;"><strong style="color:var(--navy);">Any broken cells?</strong> Zero spreadsheet errors (#REF!, #VALUE!, #DIV/0!) anywhere in the workbook.</div></div>
+        <div style="display:flex;gap:13px;align-items:flex-start;"><span class="badge fail" style="flex:0 0 auto;">BLOCK</span><div style="font-size:14.5px;"><strong style="color:var(--navy);">Do the numbers tie to the filings?</strong> It re-adds revenue, balances the balance sheet, and cross-checks against the SEC filing. A mis-keyed tab can&rsquo;t slip through.</div></div>
+        <div style="display:flex;gap:13px;align-items:flex-start;"><span class="badge fail" style="flex:0 0 auto;">BLOCK</span><div style="font-size:14.5px;"><strong style="color:var(--navy);">Does each scenario move, the right way?</strong> Bull must beat Base; a dead toggle or an upside-down result is caught.</div></div>
+        <div style="display:flex;gap:13px;align-items:flex-start;"><span class="badge pending" style="flex:0 0 auto;">WARN</span><div style="font-size:14.5px;"><strong style="color:var(--navy);">Where did every number come from?</strong> Color tells origin (blue&nbsp;=&nbsp;typed, green&nbsp;=&nbsp;linked, black&nbsp;=&nbsp;computed) and every input carries a source note.</div></div>
+      </div>
+      <div class="plain tight"><span class="plain-lbl">In plain terms</span>An automatic proofreader for the spreadsheet. <strong>BLOCK</strong> stops the model from shipping; <strong>WARN</strong> just flags it for a human to glance at.</div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 7 — THE-PROOF  [PLACEHOLDER — pending workflow]
+       ==================================================================== -->
+  <section class="slide" id="the-proof" data-title="The proof">
+    <div class="slide-inner">
+      <div class="kicker">The Machine Catches the Mistake</div>
+      <h2 class="slide-title">Clean model <span style="color:var(--green-ink)">passes</span>. Broken model <span style="color:var(--burgundy)">fails</span>.</h2>
+      <p class="lede">A deliberately-broken model gets caught and named, gate by gate. That&rsquo;s the whole point.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px;">
+        <div class="term pass">
+          <div class="bar"><i></i><i></i><i></i><span class="ttl">clean model &middot; model_gate.py</span></div>
+          <div class="body">
+            <div class="dim">$ python3 build-demo-model.py &amp;&amp; model_gate.py "MRG Model.xlsx" --strict</div>
+            <div class="ok">&#10003; T0 env+config &nbsp; T1 structure &nbsp; T2 values</div>
+            <div class="ok">&#10003; T3 actuals tie-outs &nbsp; T4 sweep &nbsp; T5 format</div>
+            <div class="ok">&#10003; 0 BLOCK &middot; 0 WARN &middot; 44 checks PASS</div>
+            <div class="ok" style="margin-top:7px;font-weight:600;">exit 0 &mdash; ship-eligible</div>
+          </div>
+        </div>
+        <div class="term fail">
+          <div class="bar"><i></i><i></i><i></i><span class="ttl">deliberately-broken model</span></div>
+          <div class="body">
+            <div class="dim">$ model_gate.py "Defect Model.xlsx"</div>
+            <div class="err">&#10007; G21 recalc never ran (stale file)</div>
+            <div class="err">&#10007; G24 #REF! error in a cell</div>
+            <div class="err">&#10007; G25 check row off by $3.5M</div>
+            <div class="err">&#10007; G36 balance sheet off by 1000&times;</div>
+            <div class="err">&#10007; G51 Bull case below Base</div>
+            <div class="dim">&hellip; 19 gates fired in all</div>
+            <div class="err" style="margin-top:7px;font-weight:600;">exit 20 &mdash; blocked</div>
+          </div>
+        </div>
+      </div>
+      <div class="plain"><span class="plain-lbl">In plain terms</span>We built one model we know is perfect and one we broke in 19 ways on purpose. The checker passes the first and catches every flaw in the second &mdash; like <strong>testing a smoke detector with real smoke.</strong> 150 automated tests keep it honest.</div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 8 — FLL-LEGIT  [PLACEHOLDER — pending fll-builder]
+       ==================================================================== -->
+  <section class="slide" id="fll-legit" data-title="FLL legit">
+    <div class="slide-inner">
+      <div class="kicker">FLL &middot; The Hardest Test</div>
+      <h2 class="slide-title">FLL: the hardest test, and the <span class="accent">honest answer</span>.</h2>
+
+      <div class="clf-grid">
+        <!-- LEFT: the finished Valuation Summary render -->
+        <div>
+          <div class="render-card">
+            <img src="assets/fll-valuation.png" alt="FLL Valuation Summary tab — EV/EBITDA SOTP, Base equity $0.62/sh, Bull $9.12/sh">
+            <div class="render-cap">FLL Model &middot; Valuation Summary &middot; sum-of-the-parts off FY29E &middot; LibreOffice render</div>
+          </div>
+          <div class="gate-badge-row" style="margin-top:14px;">
+            <span class="badge pass"><span class="dot"></span>Recalc: 0 errors</span>
+            <span class="badge pass"><span class="dot"></span>Audit: CLEAN (0 critical / 0 warn)</span>
+            <span class="badge pass"><span class="dot"></span>Sweep: 12 states, directional</span>
+            <span class="badge pass"><span class="dot"></span>Render: 12 / 12 legible</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: not-a-copy proof + the honest read framed as strength -->
+        <div class="clf-right" style="gap:9px;">
+          <div class="callout" style="padding:13px 18px;">
+            <span style="display:block;font-family:var(--font-mono);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:6px;">Built from the filings &mdash; not copied</span>
+            Every historical figure carries a <code style="font-family:var(--font-mono);color:var(--navy);background:var(--white);border:1px solid var(--gold-line);border-radius:3px;padding:1px 5px;">Source:</code> note to the exact line in a public SEC filing (FY25 10-K, Q1&rsquo;26 10-Q). The sample model shipped with the skill was <strong>never opened</strong> &mdash; and an automatic check enforces it: no outside links, a source note on every number.
+          </div>
+
+          <div class="callout catch" style="background:var(--gold-bg);border-left-color:var(--gold-deep);padding:13px 18px;">
+            <span class="catch-tag" style="color:var(--gold-deep);">The honest answer &mdash; a feature, not a bug</span>
+            <strong style="color:var(--navy);">FLL is the hardest test</strong> &mdash; the engine gives the uncomfortable read, not the flattering one. Funding the new American Place casino almost entirely with debt, on a company already owing ~9&times; its earnings, barely moves the stock in the Base case (<strong style="color:var(--navy);">$0.62/sh</strong>). The upside lives in the Bull case if the ramp works (<strong style="color:var(--green-ink);">$9.12</strong>, 2.3&times;).
+          </div>
+
+          <p class="plain" style="margin-top:0;">
+            <span class="plain-lbl">In plain terms</span>
+            A worse tool tells the analyst what they want to hear. This one says: <strong>conservatively there&rsquo;s little here; the case rests on the optimistic ramp.</strong> The multiple and the debt-vs-equity mix are the dials to argue over &mdash; which is what a model is <em>for</em>: not a thesis we&rsquo;re selling, but a <strong>trustworthy instrument for the argument.</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary &middot; FLL figures from public SEC filings, no MNPI</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 9 — CLF-PROOF  [BUILT]
+       Same engine, a name we picked cold. Scenario table + the all-unsecured
+       catch callout + an embedded CLF Cap Structure render.
+       ==================================================================== -->
+  <section class="slide" id="clf-proof" data-title="CLF proof">
+    <div class="slide-inner">
+      <div class="kicker">Same Engine &middot; A Name We Picked Cold</div>
+      <h2 class="slide-title">Cleveland&#8209;Cliffs: <span class="accent">ran cold, still gated.</span></h2>
+
+      <div class="clf-grid">
+        <!-- LEFT: embedded render -->
+        <div>
+          <div class="render-card">
+            <img src="assets/clf-cap-structure.png" alt="CLF Cap Structure tab — 10-instrument senior-unsecured schedule, total principal $7,837M">
+            <div class="render-cap">CLF Model &middot; Cap Structure tab &middot; LibreOffice render</div>
+          </div>
+        </div>
+
+        <!-- RIGHT: scenario table, the catch, gate status -->
+        <div class="clf-right" style="gap:12px;">
+          <table class="data-table clf-scenarios">
+            <thead>
+              <tr><th>Scenario</th><th class="num">EBITDA</th><th class="num">Equity /sh</th><th class="num">MOIC</th><th class="num">Debt recovery</th></tr>
+            </thead>
+            <tbody>
+              <tr class="scenario-row fulcrum"><td>Downcycle</td><td class="num">$753M</td><td class="num">&mdash;</td><td class="num">&mdash;</td><td class="num">57%</td></tr>
+              <tr class="scenario-row"><td>Base</td><td class="num">$1,734M</td><td class="num">$7.61</td><td class="num">0.61x</td><td class="num">100%</td></tr>
+              <tr class="scenario-row bull"><td>Bull</td><td class="num">$2,644M</td><td class="num">$21.07</td><td class="num">1.69x</td><td class="num">100%</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:13px;color:var(--mute);line-height:1.5;margin-top:-4px;">
+            Reading left to right: in a downturn (Downcycle) lenders get only <strong style="color:var(--burgundy);">57&cent; on the dollar</strong> back &mdash; the broken layer of debt, the <em>fulcrum</em>. In Base and Bull the debt is repaid in full. <span style="white-space:nowrap;">MOIC = multiple of money returned.</span>
+          </p>
+
+          <div class="callout catch">
+            <span class="catch-tag">&#9888; The skill caught a real data error</span>
+            <strong>The starting note called this debt &ldquo;secured.&rdquo;</strong> The filings say it&rsquo;s all <strong>unsecured</strong>: <strong>10 separate loans, $7,837M total</strong>, all ranking equally (none has first claim on assets), all behind one revolving bank line. Every maturity ties to the penny. The model fixed the debt picture before a wrong assumption could distort the thesis.
+          </div>
+
+          <div>
+            <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:9px;">Gate evidence</div>
+            <div class="gate-badge-row">
+              <span class="badge pass"><span class="dot"></span>Excel recalc: 0 errors</span>
+              <span class="badge pass"><span class="dot"></span>Audit: CLEAN</span>
+              <span class="badge pass"><span class="dot"></span>Sweep: 6 states, directional</span>
+              <span class="badge pass"><span class="dot"></span>Excel-gated &#10003;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary &middot; CLF figures from public SEC filings, no MNPI</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE R1 — RESEARCH ENGINE  [BUILT 2026-06-25]
+       Three-pass spine: Ingest / Model / Synthesize.
+       Primary-source-first, ingest/synthesize kept separate.
+       ==================================================================== -->
+  <section class="slide" id="research-engine" data-title="Research engine">
+    <div class="slide-inner">
+      <div class="kicker">The Research Skill &middot; How It Works</div>
+      <h2 class="slide-title">A ticker goes in. <span class="accent">Three passes</span> come out.</h2>
+      <p class="lede">The spine of the skill is one architectural decision: ingestion and synthesis are two separate passes. Keeping them apart is what makes the view trustworthy.</p>
+
+      <!-- Three-pass flow -->
+      <div style="display:flex;flex-direction:column;gap:0;margin-top:18px;">
+
+        <!-- PASS 1 -->
+        <div class="pass-row">
+          <div class="pass-num">PASS 1<br>INGEST</div>
+          <div class="pass-body">
+            <div class="pass-title">Primary-source-first. Every fact source-tier-flagged.</div>
+            <div class="pass-desc">Walk sources in the primary-source-first order: 10-K business description first, then earnings transcripts and IR decks, then comparables, then third-party. Every fact carries a tier tag before synthesis begins. Tier&nbsp;2 (vendor/sell-side) is supplementary and flagged. Tier&nbsp;3 (web/opinion) is flagged loudest and never blended invisibly into a primary number.</div>
+            <div class="pass-tags">
+              <span class="tag">T1: SEC filings</span>
+              <span class="tag">T1: transcripts / IR decks</span>
+              <span class="tag">T2: sell-side (flagged)</span>
+              <span class="tag">T3: web (flagged loudest)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- connector arrow -->
+        <div style="display:flex;gap:0 18px;margin:2px 0;">
+          <div style="width:96px;display:flex;justify-content:center;">
+            <svg width="2" height="18" viewBox="0 0 2 18"><line x1="1" y1="0" x2="1" y2="18" stroke="#B08D3D" stroke-width="2"/></svg>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+
+        <!-- PASS 2 -->
+        <div class="pass-row">
+          <div class="pass-num">PASS 2<br>MODEL</div>
+          <div class="pass-body">
+            <div class="pass-title">Abbreviated three-statement on one tab. Cash over EBITDA, always.</div>
+            <div class="pass-desc">P&amp;L to cash-flow bridge to cap-stack to scenario toggles &mdash; single block. Adjusted EBITDA is the comps currency; every EBITDA figure bridges back to cash from operations and cash-less-capex. Skip the full balance sheet, full P&amp;L detail, intermediate DCF years. One tab, one read.</div>
+            <div class="pass-tags">
+              <span class="tag">CFO over adj. EBITDA</span>
+              <span class="tag">cap-stack deep-dive (distressed)</span>
+              <span class="tag">scenario toggles</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- connector arrow -->
+        <div style="display:flex;gap:0 18px;margin:2px 0;">
+          <div style="width:96px;display:flex;justify-content:center;">
+            <svg width="2" height="18" viewBox="0 0 2 18"><line x1="1" y1="0" x2="1" y2="18" stroke="#B08D3D" stroke-width="2"/></svg>
+          </div>
+          <div style="flex:1;"></div>
+        </div>
+
+        <!-- PASS 3 -->
+        <div class="pass-row">
+          <div class="pass-num">PASS 3<br>SYNTH&shy;ESIZE</div>
+          <div class="pass-body">
+            <div class="pass-title">The investment angle &mdash; run after ingestion completes, as a distinct pass.</div>
+            <div class="pass-desc">Bull case, bear case, why-now, variant view (where the model breaks), and ranked key risks tied to the specific assumptions they would break. This pass reasons over the source-tiered base only &mdash; it never re-fetches and re-contaminates ingestion. This separation IS the product: the gap the method is designed to close.</div>
+            <div class="pass-tags">
+              <span class="tag">bull / bear / why-now</span>
+              <span class="tag">variant view</span>
+              <span class="tag">key risks ranked</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="plain" style="margin-top:14px;">
+        <span class="plain-lbl">In plain terms</span>
+        Read everything first, mark exactly where each fact came from, then and only then form a view. <strong>A view built before ingestion finishes contaminates the research with what you wanted to find.</strong>
+      </p>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE R2 — SOURCE TIERS + MODES  [BUILT 2026-06-25]
+       Source-tier flag discipline + --connectors presets + --mode concision.
+       ==================================================================== -->
+  <section class="slide" id="research-modes" data-title="Source tiers &amp; modes">
+    <div class="slide-inner">
+      <div class="kicker">Controls &middot; Source Tiers and Output Modes</div>
+      <h2 class="slide-title">Every fact carries a tier. <span class="accent">Every run picks a mode.</span></h2>
+      <p class="lede">Two orthogonal controls: the source-tier discipline determines how much to trust each number; the output mode selects how much to render.</p>
+
+      <div class="modes-grid">
+
+        <!-- LEFT COL: source tiers + connector presets -->
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:12px;">Source-tier flagging</div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;">
+
+            <div>
+              <div class="tier-hdr">
+                <span class="tier-badge t1">Tier 1</span>
+                <span class="tier-name">Primary &mdash; spine</span>
+              </div>
+              <ul class="tier-items">
+                <li>SEC filings: 10-K, 10-Q, 8-K, DEF&nbsp;14A, indentures</li>
+                <li>Company-issued transcripts and IR decks</li>
+                <li>EDGAR full-text search (free; zero connectors needed)</li>
+              </ul>
+            </div>
+
+            <div>
+              <div class="tier-hdr">
+                <span class="tier-badge t2">Tier 2</span>
+                <span class="tier-name">Secondary &mdash; supplementary, flagged</span>
+              </div>
+              <ul class="tier-items">
+                <li>Sell-side / data-vendor (FactSet, S&amp;P Global, Moody's, Daloopa)</li>
+                <li>Comps, consensus, ratings &mdash; useful but never blended silently into Tier&nbsp;1</li>
+              </ul>
+            </div>
+
+            <div>
+              <div class="tier-hdr">
+                <span class="tier-badge t3">Tier 3</span>
+                <span class="tier-name">Web / opinion &mdash; flagged loudest</span>
+              </div>
+              <ul class="tier-items">
+                <li>Last resort only; never substitutes a Tier-1 source</li>
+                <li>A number with no Tier-1 tag is suspect by default</li>
+              </ul>
+            </div>
+
+            <div class="callout" style="padding:11px 15px;margin-top:2px;">
+              <strong>Default connector preset: <code style="font-family:var(--font-mono);font-size:.88em;">edgar-only</code></strong> &mdash; EDGAR plus company transcripts, zero vendor calls, every fact Tier&nbsp;1. Switch to <code style="font-family:var(--font-mono);font-size:.88em;">full-stack</code> only when financial-data connectors are already authenticated; unauthenticated ones are logged as skipped, never silently replaced with web search. Bloomberg is not in the connector roster by design.
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT COL: --mode concision modes -->
+        <div>
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:12px;">Output concision: <code style="font-size:.9em;">--mode</code></div>
+
+          <div class="mode-row">
+
+            <div class="mode-card">
+              <div class="mc-tag">full</div>
+              <div class="mc-body">
+                All three artifacts rendered: the source-tiered ingestion background, the abbreviated one-tab model, and the full investment-angle synthesis with bull/bear/variant/risks. Default for a first-pass on a new name or a distressed credit. All three passes always run in full regardless of mode; mode controls only what is rendered.
+              </div>
+            </div>
+
+            <div class="mode-card">
+              <div class="mc-tag">exec-summary</div>
+              <div class="mc-body">
+                <strong>Key Insights block first,</strong> 600 words maximum. Leads with the single most important insight, not a preamble. Abbreviated financials table, thesis, variant view, key risks, conclusion &mdash; all present but compressed. Built for a quick partner read or an IC pre-screen.
+              </div>
+            </div>
+
+            <div class="mode-card">
+              <div class="mc-tag">bullet</div>
+              <div class="mc-body">
+                6&ndash;10 lines, approximately 200 words. Substantive key insight as line&nbsp;1 &mdash; not a label, not a company description. No section headers. The format for a chat summary, a quick Slack drop, or a top-of-file elevator.
+              </div>
+            </div>
+
+          </div>
+
+          <p class="plain" style="margin-top:12px;">
+            <span class="plain-lbl">In plain terms</span>
+            Three passes always run. <strong>Mode only controls how much you see at the end</strong> &mdash; the full read, a compressed executive summary, or a six-line chat drop. Same analysis, different rendering.
+          </p>
+        </div>
+
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE R3 — MNR VERIFIER  [BUILT 2026-06-25]
+       MNR (Mach Natural Resources) worked example:
+       NOT-A-BUY verdict + verifier catching two wrong facts.
+       ==================================================================== -->
+  <section class="slide" id="research-verifier" data-title="MNR: pass (yield trade)">
+    <div class="slide-inner">
+      <div class="kicker">Worked Example &middot; The Verifier Earns Its Keep</div>
+      <h2 class="slide-title">MNR: yield trade, not a mispricing. <span class="accent">The verifier catches two wrong facts.</span></h2>
+      <p class="lede">A full <code style="font-family:var(--font-mono);font-size:.88em;">--mode exec-summary --connectors edgar-only</code> run on Mach Natural Resources LP (NYSE:&nbsp;MNR), followed by a separate adversarial re-pull of every quantitative claim against EDGAR primary sources.</p>
+
+      <div class="verif-grid">
+
+        <!-- LEFT: verdict panel -->
+        <div class="verdict-panel">
+          <div>
+            <div class="vp-label">Ticker</div>
+            <div class="vp-ticker">MNR</div>
+            <div class="vp-co">Mach Natural Resources LP &middot; NYSE &middot; upstream oil &amp; gas MLP</div>
+          </div>
+          <div>
+            <div class="vp-label">Verdict (Pass 3 synthesis)</div>
+            <div class="vp-verdict">Pass: yield trade, not a mispricing.<br>Two triggers that would change the read.</div>
+            <div class="vp-sub">No public debt to underwrite. The equity is a levered, variable commodity coupon at ~1.0x declared coverage, into a soft gas tape, with acquisition-counterparty secondary selling and a $100M ATM as overhang. A yield trade, not a research-driven mispricing. EDGAR alone cannot close the valuation (no market price, no peer multiples, no credit rating).</div>
+          </div>
+          <div>
+            <div class="vp-label">Re-underwrite triggers (monitor)</div>
+            <div class="vp-findings">
+              <div class="vp-finding">October 2026 borrowing-base redetermination: if the base holds or rises despite a lower price deck, distribution durability strengthens materially.</div>
+              <div class="vp-finding">Unit-price dislocation: model the distribution at a stressed strip first; coverage is already ~1.0x.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: what the verifier caught -->
+        <div class="verif-right">
+
+          <div style="font-family:var(--font-mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:2px;">Adversarial verifier: 43 claims checked against EDGAR primary sources</div>
+
+          <div class="check-row">
+            <span class="chk-tag ok">41 / 43 confirmed</span>
+            <div class="chk-body">Every quantitative figure in the abbreviated financial table confirmed directly against EDGAR XBRL and primary filing text. CFO $491&ndash;507M FY2023&ndash;2025, Q1 2026 CAD $107.4M, net leverage ~1.72&ndash;1.86x, IKAV contract 282&nbsp;Bbtu at $1.72/MMBtu through 2030 &mdash; all confirmed to the source line.</div>
+          </div>
+
+          <div class="check-row">
+            <span class="chk-tag fix">WRONG: debt structure</span>
+            <div class="chk-body"><strong>Exec summary called it &ldquo;a single $1.14B revolver.&rdquo;</strong> The verifier pulled the Q1&nbsp;2026 10-Q Note 7. The facility has two tranches under one New Credit Agreement: a $1.0B revolving commitment plus $450M in term loan commitments, both maturing Feb&nbsp;27,&nbsp;2029. $1.14B total outstanding is correct; calling it a single revolver understates structural complexity. Fix applied before the artifact shipped.</div>
+          </div>
+
+          <div class="check-row">
+            <span class="chk-tag fix">WRONG: seller attribution</span>
+            <div class="chk-body"><strong>Exec summary called April 2026 unit sellers &ldquo;sponsors.&rdquo;</strong> The verifier pulled the 424B4 prospectus. The sellers were the IKAV and Sabinal acquisition counterparties (VEPU Inc., Simlog Inc., Sabinal Energy Operating). Tom Ward, the CEO, actually <em>purchased</em> 153K units in the same offering. The word &ldquo;sponsors&rdquo; conflated them with the PE backers (BCE/Bayou City). Fix applied.</div>
+          </div>
+
+          <div class="callout" style="padding:12px 16px;">
+            <span class="catch-tag" style="display:block;font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--gold-deep);margin-bottom:5px;">Why this matters</span>
+            Both errors would have been invisible in any summary that blended Tier-1 and Tier-3 signals without flagging them. The two-pass architecture &mdash; ingest first, then synthesize, then verify synthesis against primary sources &mdash; is what surfaces the delta. <strong>The verifier is not a post-hoc check; it is part of the product.</strong>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary &middot; MNR figures from public SEC filings (EDGAR), no MNPI</div>
+  </section>
+
+  <!-- ====================================================================
+       SLIDE 10 — CLOSE  [BUILT]
+       ==================================================================== -->
+  <section class="slide" id="close" data-title="Close">
+    <img class="starfish-wm" src="assets/starfish-white.png" alt="">
+    <div class="slide-inner">
+      <div class="kicker">What It Means</div>
+      <h2 class="close-title">The human reviews <span class="accent">judgment</span>,<br>not arithmetic or provenance.</h2>
+      <ul class="close-points">
+        <li>Every research run is <strong>source-tiered from the first fact</strong> &mdash; ingestion and synthesis are kept in separate passes so the view is never contaminated by what the analyst hoped to find.</li>
+        <li>Every model ships <strong>gated</strong> &mdash; an automatic proofreader re-runs the math, checks numbers against filings, and flips every assumption to confirm the model still behaves.</li>
+        <li>The verifier runs as an adversarial re-pull after synthesis &mdash; on MNR it caught two wrong facts (debt structure, seller attribution) before anything shipped.</li>
+        <li>The machine carries arithmetic, provenance, and tie-outs. That frees the analyst to review the one thing only a human can: <strong>the judgment.</strong></li>
+        <li>The bar the method sets is met: <strong>checking it is no longer more work than doing it.</strong></li>
+      </ul>
+      <hr class="close-rule">
+      <p style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:30px;">Next &mdash; let&rsquo;s co&#8209;build a real name together.</p>
+      <img class="close-logo" src="assets/asterozoa-white.png" alt="Asterozoa Capital">
+    </div>
+    <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
+  </section>
+
+</div>
+
+<!-- NAV -->
+<button class="arrownav prev" id="navPrev" aria-label="Previous slide">&#8249;</button>
+<button class="arrownav next" id="navNext" aria-label="Next slide">&#8250;</button>
+<div class="dotnav" id="dotnav" role="tablist" aria-label="Slide navigation"></div>
+
+<script>
+(function(){
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+  var dotnav = document.getElementById('dotnav');
+  var progressbar = document.getElementById('progressbar');
+  var current = 0;
+
+  // build dots
+  slides.forEach(function(s, i){
+    var b = document.createElement('button');
+    b.setAttribute('role','tab');
+    b.setAttribute('aria-label', s.getAttribute('data-title') || ('Slide ' + (i+1)));
+    b.addEventListener('click', function(){ goTo(i); });
+    dotnav.appendChild(b);
+  });
+  var dots = Array.prototype.slice.call(dotnav.children);
+
+  function goTo(i){
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    deck.scrollTo({ left: i * window.innerWidth, behavior: 'smooth' });
+  }
+
+  function syncFromScroll(){
+    var idx = Math.round(deck.scrollLeft / window.innerWidth);
+    idx = Math.max(0, Math.min(slides.length - 1, idx));
+    if (idx !== current){ current = idx; }
+    dots.forEach(function(d, k){ d.classList.toggle('active', k === current); });
+    var denom = (slides.length - 1) || 1;
+    progressbar.style.width = ((current / denom) * 100) + '%';
+  }
+
+  var raf;
+  deck.addEventListener('scroll', function(){
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(syncFromScroll);
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'ArrowRight' || e.key === 'PageDown'){ e.preventDefault(); goTo(current + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp'){ e.preventDefault(); goTo(current - 1); }
+    else if (e.key === 'Home'){ e.preventDefault(); goTo(0); }
+    else if (e.key === 'End'){ e.preventDefault(); goTo(slides.length - 1); }
+  });
+
+  document.getElementById('navPrev').addEventListener('click', function(){ goTo(current - 1); });
+  document.getElementById('navNext').addEventListener('click', function(){ goTo(current + 1); });
+
+  window.addEventListener('resize', function(){ goTo(current); });
+
+  // expose count for verification harnesses
+  window.__DECK_SLIDE_COUNT__ = slides.length;
+  syncFromScroll();
+})();
+</script>
+
+</body>
+</html>
