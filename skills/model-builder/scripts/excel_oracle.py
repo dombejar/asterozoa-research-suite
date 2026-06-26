@@ -193,7 +193,15 @@ def _as_quote(val) -> str:
         return "true" if val else "false"
     if isinstance(val, (int, float)):
         return str(val)
-    s = str(val).replace("\\", "\\\\").replace('"', '\\"')
+    return _as_lit(val)
+
+
+def _as_lit(s) -> str:
+    """Escape an ARBITRARY string as an AppleScript double-quoted literal
+    (backslash + double-quote). Used for the workbook path and every interpolated
+    worksheet name so a path/sheet containing a quote can't break or inject the
+    script. Cell refs ("D5") are regex-bounded and safe, but escaping is harmless."""
+    s = str(s).replace("\\", "\\\\").replace('"', '\\"')
     return f'"{s}"'
 
 
@@ -206,7 +214,7 @@ def _excel_version_applescript():
 
 def _recalc_applescript(path: Path) -> None:
     _osa([
-        f'open POSIX file "{path}"',
+        f"open POSIX file {_as_lit(path)}",
         "set wb to active workbook",
         "set iteration to true",
         f"set max iterations to {ITER_MAX_ITERATIONS}",
@@ -224,34 +232,47 @@ def _sweep_applescript(path: Path, axes, reads, default_state) -> dict:
     with values normalized."""
     import itertools
 
-    _osa([f'open POSIX file "{path}"',
-          "set iteration to true",
-          f"set max iterations to {ITER_MAX_ITERATIONS}",
-          f"set max change to {ITER_MAX_CHANGE}",
-          "set calculation to calculation automatic"])
+    # Capture the opened workbook's NAME once, then reference `workbook <name>`
+    # explicitly in EVERY subsequent call. Using `active workbook` across many
+    # separate osascript invocations is fragile — if Excel activates another
+    # workbook between calls the sweep silently writes/reads the wrong file.
+    wb_name = _osa([f"open POSIX file {_as_lit(path)}",
+                    "set iteration to true",
+                    f"set max iterations to {ITER_MAX_ITERATIONS}",
+                    f"set max change to {ITER_MAX_CHANGE}",
+                    "set calculation to calculation automatic",
+                    "return name of active workbook"])
+    wbref = f"workbook {_as_lit(wb_name)}"
+
+    # ASCII Unit Separator (US, 0x1F): a delimiter that cannot appear in Excel
+    # numeric/text outputs, so a value containing '|' no longer corrupts the
+    # per-state read alignment. Joined in AppleScript via (ASCII character 31).
+    SEP = "\x1f"
 
     state_reads = []
     for combo in itertools.product(*[vals for _, _, vals in axes]):
         lines = []
         for (sheet, cell, _), val in zip(axes, combo):
-            lines.append(f'set value of range "{cell}" of worksheet "{sheet}" '
-                         f"of active workbook to {_as_quote(val)}")
+            lines.append(f'set value of range "{cell}" of worksheet {_as_lit(sheet)} '
+                         f"of {wbref} to {_as_quote(val)}")
         lines.append("calculate full rebuild")
         getters = []
         for ref in reads:
             s, c = ref.split("!")
-            getters.append(f'(get value of range "{c}" of worksheet "{s}" '
-                           "of active workbook)")
-        lines.append("return (" + ' & "|" & '.join(getters) + ") as string")
-        raw = _osa(lines).split("|")
+            getters.append(f'(get value of range "{c}" of worksheet {_as_lit(s)} '
+                           f"of {wbref})")
+        lines.append("return ("
+                     + " & (ASCII character 31) & ".join(getters)
+                     + ") as string")
+        raw = _osa(lines).split(SEP)
         state_reads.append([normalize_value(v) for v in raw])
 
     restore = []
     for sheet, cell, val in default_state:
-        restore.append(f'set value of range "{cell}" of worksheet "{sheet}" '
-                       f"of active workbook to {_as_quote(val)}")
-    restore += ["calculate full rebuild", "save active workbook",
-                "close active workbook saving no"]
+        restore.append(f'set value of range "{cell}" of worksheet {_as_lit(sheet)} '
+                       f"of {wbref} to {_as_quote(val)}")
+    restore += ["calculate full rebuild", f"save {wbref}",
+                f"close {wbref} saving no"]
     _osa(restore)
     return {"states": state_reads, "default_restored": True}
 

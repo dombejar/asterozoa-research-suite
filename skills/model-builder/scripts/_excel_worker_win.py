@@ -98,10 +98,11 @@ def _open(app, path):
     return wb
 
 
-def op_version():
+def op_version(job):
     app = None
     try:
         app = _new_app()
+        _claim_pid(app, job.get("pid_file"))
         print(json.dumps({"excel_version": str(app.Version)}))
     finally:
         if app is not None:
@@ -197,7 +198,7 @@ def main():
     op = job.get("op")
     try:
         if op == "version":
-            op_version()
+            op_version(job)
         elif op == "recalc":
             op_recalc(job)
         elif op == "sweep":

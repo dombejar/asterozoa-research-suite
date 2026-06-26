@@ -477,6 +477,10 @@ def g01_config(config, wb_formula, demo, baseline_fp=None):
 # model_gate (no excel_oracle import) so the gate stays offline-pure (D-OFFLINE).
 VALID_ORACLE_PLATFORMS = ("darwin", "win32")   # macOS AppleScript / Windows COM
 VALID_ORACLE_BACKENDS = ("applescript", "com")
+# exact platform->backend pairing: a mismatched stamp (e.g. darwin+com) cannot
+# come from a real oracle and must be rejected (codex diff P1#1).
+VALID_ORACLE_PAIRS = {("darwin", "applescript"), ("win32", "com")}
+EXPECTED_ORACLE_SCHEMA = 2
 
 
 def g02_oracle(recalc_ev, sweep_ev, demo, test_mode, host_platform=None):
@@ -509,19 +513,25 @@ def g02_oracle(recalc_ev, sweep_ev, demo, test_mode, host_platform=None):
             "ship-evidence requires macOS or Windows with Microsoft Excel "
             "(no LibreOffice fallback)." % host))
 
-    # (b) each evidence file present must carry a real-Excel provenance stamp
+    # (b) each evidence file present must carry a real-Excel provenance stamp:
+    #     oracle=="excel", an EXACT platform/backend pair, and the expected schema.
     for name, ev in (("recalc", recalc_ev), ("sweep", sweep_ev)):
         if ev is None:
             continue   # absence is gated elsewhere (G21/G49); G02 checks provenance
         plat = ev.get("oracle_platform")
         backend = ev.get("oracle_backend")
-        if plat not in VALID_ORACLE_PLATFORMS or backend not in VALID_ORACLE_BACKENDS:
+        if (ev.get("oracle") != "excel"
+                or (plat, backend) not in VALID_ORACLE_PAIRS
+                or ev.get("schema_version") != EXPECTED_ORACLE_SCHEMA):
             findings.append(Finding(
                 "G02", "BLOCK", name,
                 "%s-evidence missing/invalid real-Excel oracle stamp "
-                "(oracle_platform=%r, oracle_backend=%r); evidence must be "
-                "produced by the AppleScript or COM Excel oracle, not faked or "
-                "carried over from a no-Excel host" % (name, plat, backend)))
+                "(oracle=%r, oracle_platform=%r, oracle_backend=%r, schema=%r); "
+                "evidence must carry oracle='excel', an exact platform/backend "
+                "pair (darwin+applescript or win32+com), and schema_version=%d — "
+                "not faked or carried over from a no-Excel host"
+                % (name, ev.get("oracle"), plat, backend, ev.get("schema_version"),
+                   EXPECTED_ORACLE_SCHEMA)))
 
     if not findings:
         findings.append(Finding("G02", "PASS", None,

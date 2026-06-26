@@ -10,9 +10,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 import model_gate as mg  # noqa: E402
+import excel_oracle as eo  # noqa: E402
 
-DARWIN_EV = {"oracle": "excel", "oracle_platform": "darwin", "oracle_backend": "applescript"}
-WIN_EV = {"oracle": "excel", "oracle_platform": "win32", "oracle_backend": "com"}
+DARWIN_EV = {"oracle": "excel", "oracle_platform": "darwin",
+             "oracle_backend": "applescript", "schema_version": 2}
+WIN_EV = {"oracle": "excel", "oracle_platform": "win32",
+          "oracle_backend": "com", "schema_version": 2}
 
 
 def blocks(findings):
@@ -63,6 +66,44 @@ class TestG02ProvenanceStamp(unittest.TestCase):
         f = mg.g02_oracle(DARWIN_EV, None, demo=False, test_mode=False,
                           host_platform="darwin")
         self.assertFalse(blocks(f))
+
+    def test_mismatched_pair_blocks(self):
+        # darwin+com is NOT an exact valid pair (darwin->applescript, win32->com)
+        bad = {"oracle": "excel", "oracle_platform": "darwin",
+               "oracle_backend": "com", "schema_version": 2}
+        f = mg.g02_oracle(bad, bad, demo=False, test_mode=False,
+                          host_platform="darwin")
+        self.assertTrue(blocks(f))
+
+    def test_missing_schema_version_blocks(self):
+        nover = {"oracle": "excel", "oracle_platform": "darwin",
+                 "oracle_backend": "applescript"}  # no schema_version
+        f = mg.g02_oracle(nover, nover, demo=False, test_mode=False,
+                          host_platform="darwin")
+        self.assertTrue(blocks(f))
+
+    def test_oracle_not_excel_blocks(self):
+        notexcel = {"oracle": "libreoffice", "oracle_platform": "darwin",
+                    "oracle_backend": "applescript", "schema_version": 2}
+        f = mg.g02_oracle(notexcel, notexcel, demo=False, test_mode=False,
+                          host_platform="darwin")
+        self.assertTrue(blocks(f))
+
+
+class TestOracleStampMatchesGate(unittest.TestCase):
+    def test_stamp_emits_schema_2_and_exact_pairs(self):
+        for plat, backend in (("darwin", "applescript"), ("win32", "com")):
+            st = eo.oracle_stamp(platform=plat)
+            self.assertEqual(st["schema_version"], mg.EXPECTED_ORACLE_SCHEMA)
+            self.assertEqual(st["schema_version"], 2)
+            self.assertEqual(st["oracle"], "excel")
+            self.assertEqual(st["oracle_platform"], plat)
+            self.assertEqual(st["oracle_backend"], backend)
+            self.assertIn((st["oracle_platform"], st["oracle_backend"]),
+                          mg.VALID_ORACLE_PAIRS)
+            # a stamp produced by oracle_stamp must PASS g02 on a matching host
+            f = mg.g02_oracle(st, st, demo=False, test_mode=False, host_platform=plat)
+            self.assertFalse(blocks(f))
 
 
 class TestG02DemoTestSkip(unittest.TestCase):
