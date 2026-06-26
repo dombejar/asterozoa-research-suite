@@ -51,12 +51,27 @@ conventions are distilled from that model plus Anthropic's financial-services mo
 
 Run this checklist before writing a single cell or kicking off MODEL-SPEC. If anything is missing, STOP and walk the user through installing it step by step. Do not silently proceed or fake-green a missing piece.
 
-1. **Python 3 present.** Run `command -v python3`. If the command returns nothing, **install it for the user** — do not instruct them to go download it:
+1. **Python 3 present.** Run `command -v python3` (Unix/macOS) or `python --version` (Windows). If Python 3 is not found, **install it for the user** — do not instruct them to go download it. Detect the OS with `uname -s` first (returns `Darwin` on macOS, `Linux` on Linux; absent or `MINGW`/`MSYS` on Windows Git Bash), then follow the matching path:
+
+   **macOS:**
    - Tell the user: "python3 is not installed — I'll install it now." Then check `command -v brew`.
    - If Homebrew is present: confirm once ("I'm going to run `brew install python` — proceed?") and, on approval, run it.
    - If Homebrew is absent: confirm once ("Homebrew is not installed either — I'll install Homebrew first, then Python. Proceed?") and, on approval, run the official Homebrew install script (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`), then `brew install python`.
-   - If the user declines both Homebrew paths, fall back: offer to fetch the official python.org macOS .pkg via `curl` and open it with `open`.
-   - After Python is installed, run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` directly — do not ask the user to start a new session.
+   - If the user declines both Homebrew paths: offer to fetch the official python.org macOS `.pkg` via `curl` and open it with `open`.
+
+   **Linux:**
+   - Tell the user: "python3 is not installed — I'll install it now using your package manager." Detect the package manager in order: `apt-get` (Debian/Ubuntu), `dnf` (Fedora/RHEL 8+), `yum` (CentOS/RHEL 7), `pacman` (Arch), `zypper` (openSUSE).
+   - Confirm once (e.g. "I'm going to run `sudo apt-get install -y python3 python3-venv` — proceed?" substituting the right manager) and, on approval, run it. Note that `sudo` may prompt for a password in the terminal.
+   - If no recognized package manager is found: direct the user to https://python.org/downloads for their distro's documented method.
+
+   **Windows (Git Bash / WSL):**
+   - Tell the user: "python3 is not installed — I'll install it now." Check for `winget` first (`winget --version`), then `choco` (`choco --version`).
+   - If `winget` is available: confirm once ("I'm going to run `winget install -e --id Python.Python.3.12` — proceed?") and, on approval, run it.
+   - If `choco` is available: confirm once ("I'm going to run `choco install python` — proceed?") and, on approval, run it.
+   - If neither is available: direct the user to https://python.org/downloads for the Windows installer.
+   - After install on Windows, open a new Git Bash terminal (or WSL shell) before continuing — the PATH update from the installer requires a fresh shell.
+
+   After Python is installed on macOS or Linux, run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` directly — do not ask the user to start a new session. On Windows, run it in a fresh Git Bash / WSL terminal after the PATH has refreshed.
 
 2. **Plugin venv and openpyxl present.** The plugin venv lives at `${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv` (bootstrap.sh uses the same default). Check that `<venv>/bin/python3 -c 'import openpyxl'` succeeds. If not:
    - Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` to create it, or

@@ -60,9 +60,9 @@ To confirm it worked, the three commands `/asterozoa:research`, `/asterozoa:buil
 
 **Requirements:**
 
-- macOS
-- Microsoft Excel installed (a local copy, not just a browser)
-- Python 3 (see below if it is missing)
+- **macOS** — the model builder drives Microsoft Excel via AppleScript for its recalc oracle. This is a hard macOS requirement; the model builder does not run on Linux or Windows. (The research skill, `/asterozoa:research`, is cross-platform and has no OS requirement.)
+- **Microsoft Excel** installed locally (not just a browser)
+- **Python 3** (see below if it is missing)
 
 **What happens automatically:** When you start a Claude Code session, the plugin's bootstrap hook runs once in the background. It creates a Python virtual environment and installs `openpyxl` into it. You will see a one-line message:
 
@@ -78,9 +78,15 @@ On subsequent sessions it silently skips because the environment already exists.
 [asterozoa] python3 not found — run /asterozoa:build-model and Claude Code will install it for you
 ```
 
-When you run `/asterozoa:build-model`, Claude Code detects the missing Python, confirms with you once, and installs it — via Homebrew if it is available, or the official Homebrew installer as a fallback. You do not need to download or install anything yourself. If you prefer to install manually, Python 3 is available at https://python.org/downloads; after that, start a new Claude Code session so the bootstrap hook completes.
+When you run `/asterozoa:build-model`, Claude Code detects the missing Python, confirms with you once, and installs it automatically based on your OS:
 
-**Why Excel is required:** `openpyxl` writes the workbook structure; Excel is required to open, recalculate, and render the final `.xlsx` output. The model gate will not declare a model complete until Excel recalc returns clean.
+- **macOS:** via Homebrew (`brew install python`), or the official Homebrew installer if Homebrew is absent.
+- **Linux:** via your system package manager (`apt-get`, `dnf`, `yum`, `pacman`, or `zypper`).
+- **Windows (Git Bash / WSL):** via `winget install Python.Python.3.12` or `choco install python`.
+
+In every case you confirm once before anything installs. If you prefer to install manually, Python 3 is available at https://python.org/downloads; after that, start a new Claude Code session so the bootstrap hook completes.
+
+**Why Excel is required:** `openpyxl` writes the workbook structure; Excel is required to open, recalculate, and render the final `.xlsx` output. The model gate will not declare a model complete until Excel recalc returns clean. Excel recalc uses AppleScript and requires macOS.
 
 ---
 

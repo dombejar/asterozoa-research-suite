@@ -1,7 +1,7 @@
 {
   "name": "asterozoa",
   "displayName": "Asterozoa Research Suite",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Primary-source-first equity/credit research + institutional valuation models, EDGAR-first, gated for correctness.",
   "author": { "name": "Asterozoa Capital" },
   "repository": "https://github.com/dombejar/asterozoa-research-suite",
