@@ -56,7 +56,7 @@ Run this checklist before writing a single cell or kicking off MODEL-SPEC. If an
    **macOS:**
    - Tell the user: "python3 is not installed — I'll install it now." Then check `command -v brew`.
    - If Homebrew is present: confirm once ("I'm going to run `brew install python` — proceed?") and, on approval, run it.
-   - If Homebrew is absent: confirm once ("Homebrew is not installed either — I'll install Homebrew first, then Python. Proceed?") and, on approval, run the official Homebrew install script (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`), then `brew install python`.
+   - If Homebrew is absent: confirm once ("Homebrew is not installed either — I'll install Homebrew first, then Python. The Homebrew installer is interactive — it will ask you to press RETURN and may prompt for your password in the terminal. Proceed?") and, on approval, run the official Homebrew install script (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`). After it finishes, load brew into the CURRENT shell before using it (a fresh Homebrew install is not on PATH in the same shell): `eval "$(/opt/homebrew/bin/brew shellenv)"` (Apple Silicon) or `eval "$(/usr/local/bin/brew shellenv)"` (Intel), then `brew install python`.
    - If the user declines both Homebrew paths: offer to fetch the official python.org macOS `.pkg` via `curl` and open it with `open`.
 
    **Linux:**
@@ -66,19 +66,20 @@ Run this checklist before writing a single cell or kicking off MODEL-SPEC. If an
 
    **Windows (Git Bash / WSL):**
    - Tell the user: "python3 is not installed — I'll install it now." Check for `winget` first (`winget --version`), then `choco` (`choco --version`).
-   - If `winget` is available: confirm once ("I'm going to run `winget install -e --id Python.Python.3.12` — proceed?") and, on approval, run it.
-   - If `choco` is available: confirm once ("I'm going to run `choco install python` — proceed?") and, on approval, run it.
+   - If `winget` is available: confirm once ("I'm going to run `winget install -e --id Python.Python.3.12 --silent` — proceed?") and, on approval, run it (`-e` exact-match + `--silent` so it does not re-prompt after your confirm).
+   - If `choco` is available: confirm once ("I'm going to run `choco install python -y` — proceed?") and, on approval, run it (`-y` so Chocolatey does not re-prompt after your confirm).
    - If neither is available: direct the user to https://python.org/downloads for the Windows installer.
    - After install on Windows, open a new Git Bash terminal (or WSL shell) before continuing — the PATH update from the installer requires a fresh shell.
 
    After Python is installed on macOS or Linux, run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` directly — do not ask the user to start a new session. On Windows, run it in a fresh Git Bash / WSL terminal after the PATH has refreshed.
 
-2. **Plugin venv and openpyxl present.** The plugin venv lives at `${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv` (bootstrap.sh uses the same default). Check that `<venv>/bin/python3 -c 'import openpyxl'` succeeds. If not:
-   - Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` to create it, or
-   - Install manually: `python3 -m venv "${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv" && <venv>/bin/pip install openpyxl`.
+2. **Plugin venv and openpyxl present.** The plugin venv lives at `${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv` (bootstrap.sh uses the same default). The venv interpreter path is OS-dependent: **`<venv>/bin/python3`** on macOS/Linux, **`<venv>/Scripts/python.exe`** on Windows; pip is **`<venv>/bin/pip`** vs **`<venv>/Scripts/pip.exe`**. Check that the venv python imports openpyxl (`<venv-python> -c 'import openpyxl'`). If not:
+   - Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` to create it (the script auto-resolves `bin/` vs `Scripts/` and `python` vs `python3`), or
+   - Install manually — **macOS/Linux:** `python3 -m venv "$VENV" && "$VENV/bin/pip" install openpyxl`; **Windows (Git Bash):** `py -3 -m venv "$VENV" && "$VENV/Scripts/python.exe" -m pip install openpyxl` (with `VENV="${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv"`).
+   - On **Windows the venv also needs `pywin32`** (the COM Excel oracle): `"$VENV/Scripts/python.exe" -m pip install pywin32`. bootstrap.sh installs it automatically on Windows.
    - The venv is what gives `model_gate.py` the openpyxl it needs offline. Without it, the gate stamps the environment "unlocked" and the model is not ship-eligible.
 
-3. **Microsoft Excel (macOS) present.** `recalc.py` and `audit_model.py` drive Excel via AppleScript for the live recalc oracle and the sweep matrix. Without Excel on this machine, STOP: do not proceed with deliverable model work. The only exception is if the user explicitly asks for a non-ship-eligible draft (e.g. a skeleton to hand off to a machine that does have Excel); state the limitation clearly and get explicit acknowledgment before continuing. openpyxl can write the file, but without real-Excel recalc and sweep evidence, `model_gate.py` will block and the model cannot be shipped.
+3. **Microsoft Excel present (macOS OR Windows).** `recalc.py` and `audit_model.py` drive **real Microsoft Excel** for the live recalc oracle and the sweep matrix — via **AppleScript on macOS** and **COM (pywin32) on Windows** (auto-dispatched by `excel_oracle.py`). **Linux is research/draft-only: there is NO Excel oracle, so the model can be DRAFTED but is NOT ship-eligible** — `recalc.py`/`audit_model.py` exit 2 and `model_gate.py` G02 BLOCKs (fail-honest, no LibreOffice fallback). Without Excel on a Mac/Windows machine either, STOP: do not proceed with deliverable model work. The only exception is an explicitly-requested non-ship-eligible draft (e.g. a skeleton to hand to a machine that has Excel); state the limitation clearly and get explicit acknowledgment first. openpyxl can write the file, but without real-Excel recalc + sweep evidence the gate blocks and the model cannot ship.
 
 ## Workflow (phase gates — show work at each gate, don't build end-to-end)
 

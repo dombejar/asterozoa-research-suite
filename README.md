@@ -38,7 +38,7 @@ Either way, the three `/asterozoa:` commands are now available in every session.
 
 **Build-model** needs more, because it writes and recalculates a real Excel file:
 
-- **macOS** — the recalc and sweep oracle drives Excel via AppleScript. This is a hard macOS requirement. The model builder does not run on Linux or Windows. (`/asterozoa:research` is cross-platform and has no OS requirement.)
+- **macOS or Windows with Microsoft Excel** — the recalc and sweep oracle drives **real Excel** (AppleScript on macOS, COM/pywin32 on Windows; auto-dispatched). **Linux is research/draft-only:** the model can be drafted but its ship-gate is honestly unavailable (no Excel oracle, no LibreOffice fallback) — `recalc`/`audit`/`model_gate` fail loud rather than fake-green. (`/asterozoa:research` is cross-platform on all three with no OS requirement.)
 - **Microsoft Excel** installed locally (the final recalc/render runs through real Excel, not a Python library)
 - **Python 3 with openpyxl**. The plugin handles this end-to-end: if Python 3 is not installed, running `/asterozoa:build-model` has Claude Code detect your OS and install Python for you (macOS via Homebrew, Linux via your system package manager, Windows via winget or choco) — with a one-line confirm before anything runs. Once Python is present, the venv and openpyxl are created automatically on first session start. No action needed from you.
 

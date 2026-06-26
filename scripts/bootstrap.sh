@@ -7,6 +7,13 @@ set -euo pipefail
 
 VENV_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv"
 
+# On Windows (Git Bash / MSYS) the Excel oracle drives Excel via COM, which needs
+# pywin32 in the venv. macOS uses AppleScript (no extra dep); Linux has no oracle.
+PKGS="openpyxl"
+case "$(uname -s 2>/dev/null)" in
+  MINGW*|MSYS*|CYGWIN*|Windows_NT) PKGS="openpyxl pywin32" ;;
+esac
+
 # Locate a Python 3 interpreter (python3 on Unix/macOS, python on Windows Git Bash).
 if command -v python3 &>/dev/null; then
   PY=python3
@@ -52,11 +59,11 @@ VENV_PY="$(_venv_py)"
 VENV_PIP="$(_venv_pip)"
 
 if [ -n "$VENV_PIP" ]; then
-  "$VENV_PIP" install --quiet openpyxl \
+  "$VENV_PIP" install --quiet $PKGS \
     && echo "[asterozoa] venv ready (openpyxl installed)" \
     || echo "[asterozoa] openpyxl install failed — continuing without it"
 elif [ -n "$VENV_PY" ]; then
-  "$VENV_PY" -m pip install --quiet openpyxl \
+  "$VENV_PY" -m pip install --quiet $PKGS \
     && echo "[asterozoa] venv ready (openpyxl installed)" \
     || echo "[asterozoa] openpyxl install failed — continuing without it"
 else

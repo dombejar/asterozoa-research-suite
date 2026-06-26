@@ -60,7 +60,7 @@ To confirm it worked, the three commands `/asterozoa:research`, `/asterozoa:buil
 
 **Requirements:**
 
-- **macOS** — the model builder drives Microsoft Excel via AppleScript for its recalc oracle. This is a hard macOS requirement; the model builder does not run on Linux or Windows. (The research skill, `/asterozoa:research`, is cross-platform and has no OS requirement.)
+- **macOS or Windows with Microsoft Excel** — the model builder drives real Excel for its recalc oracle (AppleScript on macOS, COM/pywin32 on Windows; auto-dispatched). **Linux is research/draft-only:** a model can be drafted but cannot be shipped (no Excel oracle, no LibreOffice fallback — the gate fails honest). (The research skill, `/asterozoa:research`, is cross-platform on all three.)
 - **Microsoft Excel** installed locally (not just a browser)
 - **Python 3** (see below if it is missing)
 
@@ -86,7 +86,7 @@ When you run `/asterozoa:build-model`, Claude Code detects the missing Python, c
 
 In every case you confirm once before anything installs. If you prefer to install manually, Python 3 is available at https://python.org/downloads; after that, start a new Claude Code session so the bootstrap hook completes.
 
-**Why Excel is required:** `openpyxl` writes the workbook structure; Excel is required to open, recalculate, and render the final `.xlsx` output. The model gate will not declare a model complete until Excel recalc returns clean. Excel recalc uses AppleScript and requires macOS.
+**Why Excel is required:** `openpyxl` writes the workbook structure; real Excel is required to open, recalculate, and render the final `.xlsx` output. The model gate will not declare a model complete until Excel recalc returns clean. Excel recalc auto-dispatches by OS — AppleScript on macOS, COM/pywin32 on Windows — and is honestly unavailable on Linux (the gate fails loud rather than fake-green).
 
 ---
 
