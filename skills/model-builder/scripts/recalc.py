@@ -41,39 +41,27 @@ import argparse
 import hashlib
 import json
 import shutil
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 import openpyxl
 
-ERROR_LITERALS = ("#REF!", "#VALUE!", "#DIV/0!", "#NAME?", "#N/A", "#NUM!", "#NULL!")
+import excel_oracle
 
-APPLESCRIPT = """
-tell application "Microsoft Excel"
-	open POSIX file "{path}"
-	set wb to active workbook
-	set iteration to true
-	set max iterations to 100
-	set max change to 0.001
-	set calculation to calculation automatic
-	calculate full rebuild
-	save wb
-	close wb saving no
-	return "ok"
-end tell
-"""
+ERROR_LITERALS = ("#REF!", "#VALUE!", "#DIV/0!", "#NAME?", "#N/A", "#NUM!", "#NULL!")
 
 
 def recalc_in_excel(path: Path) -> None:
-    script = APPLESCRIPT.format(path=str(path))
-    proc = subprocess.run(
-        ["osascript", "-e", script], capture_output=True, text=True, timeout=600
-    )
-    if proc.returncode != 0 or "ok" not in proc.stdout:
-        print(f"FATAL: Excel recalc failed\nstdout: {proc.stdout}\nstderr: {proc.stderr}",
-              file=sys.stderr)
+    """Force a full iterative rebuild in real Excel via the OS-dispatch oracle
+    (macOS AppleScript / Windows COM). Linux or any Excel failure -> exit 2."""
+    try:
+        excel_oracle.recalc_once(path)
+    except excel_oracle.NoExcelError as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        sys.exit(2)
+    except excel_oracle.OracleError as e:
+        print(f"FATAL: Excel recalc failed\n{e}", file=sys.stderr)
         sys.exit(2)
 
 
@@ -191,6 +179,7 @@ def emit_evidence(target: Path, config: dict, canary_ref: str,
     ov = _output_value_fingerprint(target, config)
     evidence = {
         "path": target.name,
+        **excel_oracle.oracle_stamp(excel_version=excel_oracle.excel_version()),
         "mtime_before": mtime_before,
         "mtime_after": mtime_after,
         "canary_cell": canary_ref,

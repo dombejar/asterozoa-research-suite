@@ -60,6 +60,8 @@ from pathlib import Path
 
 import openpyxl
 
+import excel_oracle
+
 ERROR_LITERALS = {"#REF!", "#VALUE!", "#DIV/0!", "#NAME?", "#N/A", "#NUM!", "#NULL!"}
 BLUE = "FF0000FF"
 GREEN = "FF008000"
@@ -191,34 +193,9 @@ def audit_values(path: Path, only_sheet: str | None):
 
 # --------------------------------------------------------------------- sweep stage
 
-def osa(lines: list[str]) -> str:
-    script = 'tell application "Microsoft Excel"\n' + "\n".join(
-        "\t" + l for l in lines) + "\nend tell"
-    proc = subprocess.run(["osascript", "-e", script], capture_output=True, text=True,
-                          timeout=600)
-    if proc.returncode != 0:
-        raise RuntimeError(f"osascript failed: {proc.stderr.strip()}")
-    return proc.stdout.strip()
-
-
 def parse_ref(spec: str):
     sheet, cell = spec.split("!")
     return sheet, cell
-
-
-def _coerce_num(s: str):
-    """Coerce an osascript string read to int/float when it is numeric, else
-    return the stripped string (error literals + named states stay strings)."""
-    if not isinstance(s, str):
-        return s
-    t = s.strip()
-    if t in ERROR_LITERALS:
-        return t
-    try:
-        f = float(t)
-        return int(f) if f.is_integer() else f
-    except ValueError:
-        return t
 
 
 def _parse_axis_value(token: str):
@@ -246,9 +223,11 @@ def _parse_axis_value(token: str):
 def sweep(path: Path, toggles: list[str], outputs: list[str], default_state: list[str],
           min_cash_refs: list[str] | None = None,
           covenant_refs: list[str] | None = None) -> dict:
-    """Drive Excel across the full scenario grid. Returns a sweep-evidence dict in
-    model_gate.py's schema (states + default_restored). The structured record is a
-    superset of the printed report; --emit-evidence writes the returned dict."""
+    """Drive Excel across the full scenario grid via the OS-dispatch oracle
+    (macOS AppleScript / Windows COM — excel_oracle.run_sweep). Returns a
+    sweep-evidence dict in model_gate.py's schema (states + default_restored +
+    oracle stamp). The structured record is a superset of the printed report;
+    --emit-evidence writes the returned dict. Linux / Excel failure -> exit 2."""
     import itertools
 
     min_cash_refs = min_cash_refs or []
@@ -263,48 +242,45 @@ def sweep(path: Path, toggles: list[str], outputs: list[str], default_state: lis
 
     # extra refs read per state (after the outputs) for the G54 min-cash gate
     extra_refs = list(min_cash_refs) + list(covenant_refs)
+    reads = list(outputs) + extra_refs
 
-    osa([f'open POSIX file "{path}"',
-         "set iteration to true", "set max iterations to 100", "set max change to 0.001",
-         "set calculation to calculation automatic"])
+    default_parsed = []
+    for d in default_state:
+        ref, val = d.split("=")
+        sheet, cell = parse_ref(ref)
+        default_parsed.append((sheet, cell, _parse_axis_value(val)))
 
-    def set_and_read(state):
-        lines = []
-        for (sheet, cell, _), val in zip(axes, state):
-            v = f'"{val}"' if isinstance(val, str) else str(val)
-            lines.append(f'set value of range "{cell}" of worksheet "{sheet}" '
-                         f"of active workbook to {v}")
-        lines.append("calculate full rebuild")
-        reads = []
-        for o in list(outputs) + extra_refs:
-            s, c = parse_ref(o)
-            reads.append(f'(get value of range "{c}" of worksheet "{s}" of active workbook)')
-        lines.append("return (" + ' & "|" & '.join(reads) + ") as string")
-        return osa(lines).split("|")
+    # Drive Excel across the whole grid in one session (typed reads back).
+    try:
+        result = excel_oracle.run_sweep(path, axes, reads, default_parsed)
+    except excel_oracle.NoExcelError as e:
+        print(f"FATAL: {e}", file=sys.stderr)
+        sys.exit(2)
+    except excel_oracle.OracleError as e:
+        print(f"FATAL: Excel sweep failed\n{e}", file=sys.stderr)
+        sys.exit(2)
 
     grid = {}
     states = []
     print("\nSCENARIO SWEEP")
     print("state".ljust(28) + " | " + " | ".join(o.split("!")[1] for o in outputs))
-    for state in itertools.product(*[vals for _, _, vals in axes]):
-        try:
-            raw = set_and_read(state)
-        except RuntimeError as e:
-            add(CRIT, f"sweep {state}", str(e))
-            continue
-        out_raw = raw[:len(outputs)]
-        extra_raw = raw[len(outputs):]
-        grid[state] = out_raw
-        errs = [v for v in raw if isinstance(v, str) and v.strip() in ERROR_LITERALS]
+    combos = list(itertools.product(*[vals for _, _, vals in axes]))
+    for state, state_reads in zip(combos, result["states"]):
+        out_vals = state_reads[:len(outputs)]
+        extra_vals = state_reads[len(outputs):]
+        grid[state] = tuple(out_vals)
+        errs = [v for v in state_reads
+                if isinstance(v, str) and v.strip() in ERROR_LITERALS]
         if errs:
-            add(CRIT, f"sweep {state}", f"error value in outputs: {out_raw}")
-        print(str(state).ljust(28) + " | " + " | ".join(v[:12] for v in out_raw))
+            add(CRIT, f"sweep {state}", f"error value in outputs: {out_vals}")
+        print(str(state).ljust(28) + " | "
+              + " | ".join(str(v)[:12] for v in out_vals))
 
         # ---- structured record (model_gate.py sweep-evidence schema) ----
         axis_state = {f"{sheet}!{cell}": val
                       for (sheet, cell, _), val in zip(axes, state)}
-        out_map = {o: _coerce_num(v) for o, v in zip(outputs, out_raw)}
-        extra_map = {r: _coerce_num(v) for r, v in zip(extra_refs, extra_raw)}
+        out_map = dict(zip(outputs, out_vals))
+        extra_map = dict(zip(extra_refs, extra_vals))
         min_cash_vals = [extra_map[r] for r in min_cash_refs if r in extra_map]
         numeric_mc = [v for v in min_cash_vals if isinstance(v, (int, float))]
         covenant_flags = {r: extra_map.get(r) for r in covenant_refs}
@@ -326,19 +302,12 @@ def sweep(path: Path, toggles: list[str], outputs: list[str], default_state: lis
             add(CRIT, f"sweep output {o}",
                 "identical across ALL states — toggle likely not wired to this output")
 
-    # restore default state, recalc, save (refreshes valuation freeze columns)
-    restore = []
-    for d in default_state:
-        ref, val = d.split("=")
-        sheet, cell = parse_ref(ref)
-        v = f'"{val}"' if not val.strip().lstrip("-").isdigit() else val
-        restore.append(f'set value of range "{cell}" of worksheet "{sheet}" '
-                       f"of active workbook to {v}")
-    restore += ["calculate full rebuild", "save active workbook",
-                "close active workbook saving no"]
-    osa(restore)
     print(f"restored default state {default_state}, saved.")
-    return {"states": states, "default_restored": True}
+    return {
+        "states": states,
+        "default_restored": result.get("default_restored", True),
+        **excel_oracle.oracle_stamp(excel_version=excel_oracle.excel_version()),
+    }
 
 
 # --------------------------------------------------------------------- main

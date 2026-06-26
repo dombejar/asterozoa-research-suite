@@ -473,6 +473,62 @@ def g01_config(config, wb_formula, demo, baseline_fp=None):
     return findings
 
 
+# Real-Excel oracle provenance (closes the Linux fake-green seam). Kept LOCAL to
+# model_gate (no excel_oracle import) so the gate stays offline-pure (D-OFFLINE).
+VALID_ORACLE_PLATFORMS = ("darwin", "win32")   # macOS AppleScript / Windows COM
+VALID_ORACLE_BACKENDS = ("applescript", "com")
+
+
+def g02_oracle(recalc_ev, sweep_ev, demo, test_mode, host_platform=None):
+    """G02 — the ship-gate refuses to certify without a REAL Excel oracle.
+
+    Three-layer Linux fail-honest (DESIGN-RESOLUTIONS #13):
+      (a) HOST block: model_gate run on a host with no real Excel oracle
+          (sys.platform not in {darwin, win32}) BLOCKs. You cannot ship FROM a
+          Linux box, period — the locked "Linux = research-only" decision.
+      (b) PROVENANCE block: the recalc + sweep evidence must each carry an
+          oracle stamp proving it came from real Excel (oracle_platform in
+          {darwin, win32}, oracle_backend in {applescript, com}). This rejects
+          stale/forged evidence left on a no-Excel host.
+      (Layer (c), run-currency, is G21's workbook-hash binding — already enforced.)
+
+    Skipped under --demo / --test (explicitly non-shipping fixtures). G21's hash
+    binding plus G00's unlocked-env stamp keep those paths honest on their own."""
+    if demo or test_mode:
+        return [Finding("G02", "PASS", None, "demo/test path: oracle gate not applicable")]
+
+    host = host_platform if host_platform is not None else sys.platform
+    findings = []
+
+    # (a) host must itself be a real-Excel-oracle platform
+    if host not in VALID_ORACLE_PLATFORMS:
+        findings.append(Finding(
+            "G02", "BLOCK", host,
+            "ship-gate cannot certify on a host without a real Excel oracle "
+            "(platform=%s). The model can be DRAFTED on Linux, but recalc/sweep "
+            "ship-evidence requires macOS or Windows with Microsoft Excel "
+            "(no LibreOffice fallback)." % host))
+
+    # (b) each evidence file present must carry a real-Excel provenance stamp
+    for name, ev in (("recalc", recalc_ev), ("sweep", sweep_ev)):
+        if ev is None:
+            continue   # absence is gated elsewhere (G21/G49); G02 checks provenance
+        plat = ev.get("oracle_platform")
+        backend = ev.get("oracle_backend")
+        if plat not in VALID_ORACLE_PLATFORMS or backend not in VALID_ORACLE_BACKENDS:
+            findings.append(Finding(
+                "G02", "BLOCK", name,
+                "%s-evidence missing/invalid real-Excel oracle stamp "
+                "(oracle_platform=%r, oracle_backend=%r); evidence must be "
+                "produced by the AppleScript or COM Excel oracle, not faked or "
+                "carried over from a no-Excel host" % (name, plat, backend)))
+
+    if not findings:
+        findings.append(Finding("G02", "PASS", None,
+                                "real-Excel oracle: host %s + stamped evidence" % host))
+    return findings
+
+
 # ---------------------------------------------------------------------------
 # T1 - structure (formula view)
 # ---------------------------------------------------------------------------
@@ -2685,6 +2741,7 @@ def run_all_gates(wb_formula, wb_cached, config, evidence, workbook_path="model.
     # T0
     findings.extend(g00_env(allow_unlocked))
     findings.extend(g01_config(config, wb_formula, demo, baseline_fp=baseline_fp))
+    findings.extend(g02_oracle(recalc_ev, sweep_ev, demo, test_mode))
     if [f for f in findings if f.severity == "BLOCK"]:
         return findings   # T0 BLOCK aborts (D-ENTRY)
 
