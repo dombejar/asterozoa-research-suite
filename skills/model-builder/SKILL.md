@@ -51,10 +51,12 @@ conventions are distilled from that model plus Anthropic's financial-services mo
 
 Run this checklist before writing a single cell or kicking off MODEL-SPEC. If anything is missing, STOP and walk the user through installing it step by step. Do not silently proceed or fake-green a missing piece.
 
-1. **Python 3 present.** Run `command -v python3`. If the command returns nothing, guide the user through installation:
-   - Option 1 (Homebrew, recommended): `brew install python` (get Homebrew at https://brew.sh if it is not installed).
-   - Option 2 (official installer): download from https://www.python.org/downloads/macos/ and run the .pkg.
-   - Then ask the user to start a new Claude Code session so the SessionStart hook re-runs `scripts/bootstrap.sh` and creates the venv automatically.
+1. **Python 3 present.** Run `command -v python3`. If the command returns nothing, **install it for the user** — do not instruct them to go download it:
+   - Tell the user: "python3 is not installed — I'll install it now." Then check `command -v brew`.
+   - If Homebrew is present: confirm once ("I'm going to run `brew install python` — proceed?") and, on approval, run it.
+   - If Homebrew is absent: confirm once ("Homebrew is not installed either — I'll install Homebrew first, then Python. Proceed?") and, on approval, run the official Homebrew install script (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`), then `brew install python`.
+   - If the user declines both Homebrew paths, fall back: offer to fetch the official python.org macOS .pkg via `curl` and open it with `open`.
+   - After Python is installed, run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` directly — do not ask the user to start a new session.
 
 2. **Plugin venv and openpyxl present.** The plugin venv lives at `${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv` (bootstrap.sh uses the same default). Check that `<venv>/bin/python3 -c 'import openpyxl'` succeeds. If not:
    - Run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap.sh"` to create it, or

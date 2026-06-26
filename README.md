@@ -40,7 +40,7 @@ Either way, the three `/asterozoa:` commands are now available in every session.
 
 - **macOS**
 - **Microsoft Excel** installed (the final recalc/render runs through real Excel, not a Python library)
-- A **Python environment with openpyxl**, which the plugin installs automatically the first time a session starts (no action needed from you)
+- A **Python environment with openpyxl**. The plugin handles this end-to-end: if Python 3 is not installed, running `/asterozoa:build-model` has Claude Code install it for you (with a one-line confirm); once Python is present, the venv and openpyxl are created automatically on first session start. No action needed from you.
 
 If you only want research, you can ignore the model prerequisites entirely.
 

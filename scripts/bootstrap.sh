@@ -7,29 +7,7 @@ set -euo pipefail
 VENV_DIR="${CLAUDE_PLUGIN_DATA:-$HOME/.asterozoa-plugin-data}/venv"
 
 if ! command -v python3 &>/dev/null; then
-  echo ""
-  echo "================================================================"
-  echo " Asterozoa Research Suite: Python 3 not found"
-  echo "================================================================"
-  echo ""
-  echo " The model-builder skill requires Python 3 to build and gate"
-  echo " Excel models (openpyxl + audit scripts). The securities-research"
-  echo " skill does NOT require Python 3 and works without it."
-  echo ""
-  echo " To install Python 3 on macOS, pick one option:"
-  echo ""
-  echo "  Option 1 -- Homebrew (recommended):"
-  echo "    brew install python"
-  echo "    (If Homebrew is not installed, get it at https://brew.sh)"
-  echo ""
-  echo "  Option 2 -- Official installer:"
-  echo "    Download from https://www.python.org/downloads/macos/"
-  echo "    Run the .pkg and follow the prompts."
-  echo ""
-  echo " After installing, start a new Claude Code session -- setup"
-  echo " runs automatically on session start."
-  echo "================================================================"
-  echo ""
+  echo "[asterozoa] python3 not found — run /asterozoa:build-model and Claude Code will install it for you"
   exit 0
 fi
 

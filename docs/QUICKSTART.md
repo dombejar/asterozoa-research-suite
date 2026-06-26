@@ -75,10 +75,10 @@ On subsequent sessions it silently skips because the environment already exists.
 **If python3 is missing:** The bootstrap hook will print:
 
 ```
-[asterozoa] python3 not found — skipping venv setup
+[asterozoa] python3 not found — run /asterozoa:build-model and Claude Code will install it for you
 ```
 
-This means `/asterozoa:build-model` will not be able to write Excel files. Install Python 3 from https://python.org/downloads and start a new Claude Code session. The bootstrap hook will run again and complete normally.
+When you run `/asterozoa:build-model`, Claude Code detects the missing Python, confirms with you once, and installs it — via Homebrew if it is available, or the official Homebrew installer as a fallback. You do not need to download or install anything yourself. If you prefer to install manually, Python 3 is available at https://python.org/downloads; after that, start a new Claude Code session so the bootstrap hook completes.
 
 **Why Excel is required:** `openpyxl` writes the workbook structure; Excel is required to open, recalculate, and render the final `.xlsx` output. The model gate will not declare a model complete until Excel recalc returns clean.
 
