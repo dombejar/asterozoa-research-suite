@@ -111,6 +111,16 @@ body{
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;
 }
+/* ---- SCALE-TO-FIT STAGE -------------------------------------------------- */
+/* Each .slide-inner is wrapped in a .slide-stage. JS measures the stage's    */
+/* natural (unscaled) size, then applies transform:scale(s) so the content    */
+/* fills and fits the viewport without ever clipping. The .slide itself       */
+/* stays 100vw x 100vh and is the scroll-snap unit — never resized.          */
+/* width/height are set inline by JS after measurement.                       */
+.slide-stage{
+  transform-origin:center center;
+  will-change:transform;
+}
 .slide-inner{
   width:100%;max-width:1180px;
   padding:64px 72px 92px;
@@ -559,7 +569,7 @@ body{
        ==================================================================== -->
   <section class="slide" id="cover" data-title="Cover">
     <img class="starfish-wm" src="assets/starfish-white.png" alt="">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <img class="cover-logo" src="assets/asterozoa-white.png" alt="Asterozoa Capital">
       <div class="kicker">Asterozoa Capital &middot; Research &amp; Model Engine Walkthrough</div>
       <h1 class="cover-title">Research and Model:<br>Built, <span class="accent">and Proven.</span></h1>
@@ -569,7 +579,7 @@ body{
         ASTEROZOA CAPITAL &nbsp;&middot;&nbsp; RESEARCH SUITE<br>
         2026&#8209;06&#8209;18 &nbsp;&middot;&nbsp; <span class="stamp">ASTEROZOA CAPITAL &mdash; PROPRIETARY</span>
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -578,7 +588,7 @@ body{
        The stakes: the verification bar IS the product.
        ==================================================================== -->
   <section class="slide" id="why" data-title="Why">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">The Bar</div>
       <p class="pull"><span class="q">&ldquo;</span>Is it more work to check this<br>than to just do it myself?<span class="q">&rdquo;</span></p>
       <div class="pull-attrib">&mdash; the question every model has to answer</div>
@@ -588,7 +598,7 @@ body{
         <span class="plain-lbl">In plain terms</span>
         A model you can&rsquo;t trust on sight is worse than no model: you have to redo all the math just to believe it. So the real deliverable isn&rsquo;t the spreadsheet. <strong>It&rsquo;s the proof that the spreadsheet is right.</strong>
       </p>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -597,7 +607,7 @@ body{
        Ticker in -> 8-tab institutional model out.
        ==================================================================== -->
   <section class="slide" id="what-it-is" data-title="What it is">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">The Skill, in One Picture</div>
       <h2 class="slide-title">A ticker goes in. An <span class="accent">institutional model</span> comes out.</h2>
       <p class="lede">No template-fill, no copy-paste. Filings drive an engine; the engine builds every tab from primary sources &mdash; the company&rsquo;s own SEC reports.</p>
@@ -652,7 +662,7 @@ body{
         <span class="chip">Actuals</span>
         <span class="chip">Cap Structure</span>
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -662,7 +672,7 @@ body{
        densest ideas BEFORE slide 4 shows them as cells. One analogy each.
        ==================================================================== -->
   <section class="slide" id="four-ideas" data-title="How to read it">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">Four Habits Behind Every Build</div>
       <h2 class="slide-title">Four rules that make a model <span class="accent">trustworthy on sight</span>.</h2>
       <p class="lede">Each one is a working analyst&rsquo;s habit. Here&rsquo;s the everyday version of each &mdash; then you&rsquo;ll see it as a real cell.</p>
@@ -710,7 +720,7 @@ body{
         </div>
 
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -718,7 +728,7 @@ body{
        SLIDE 4 — RULE-TO-OUTPUT  [PLACEHOLDER — pending fll-builder]
        ==================================================================== -->
   <section class="slide" id="rule-to-output" data-title="Rule to output">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">The Core &middot; How a Rule Becomes a Cell</div>
       <h2 class="slide-title">A written rule becomes a <span class="accent">working cell</span>.</h2>
       <p class="lede">Same four habits, now made literal: each line of the written spec reliably produces a specific cell you can point at in the workbook. Shown on FLL (Full House Resorts).</p>
@@ -792,7 +802,7 @@ body{
           </div>
         </div>
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -800,7 +810,7 @@ body{
        SLIDE 5 — LOCKDOWN  [PLACEHOLDER — pending workflow]
        ==================================================================== -->
   <section class="slide" id="lockdown" data-title="Lockdown">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">How We Hardened the Skill</div>
       <h2 class="slide-title">The multi&#8209;model <span class="accent">adversarial lockdown</span>.</h2>
       <p class="lede">We didn&rsquo;t trust one model to grade its own homework. We made several tear it apart, blind.</p>
@@ -827,7 +837,7 @@ body{
         </div>
       </div>
       <div class="plain"><span class="plain-lbl">In plain terms</span>Like hiring three rival inspectors to break your own work, writing down everything they find as a checklist a machine runs &mdash; then turning the inspectors loose on the machine itself. <strong>A flaw only counts when more than one finds it independently.</strong></div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -835,7 +845,7 @@ body{
        SLIDE 6 — THE-TESTS  [PLACEHOLDER — pending workflow]
        ==================================================================== -->
   <section class="slide" id="the-tests" data-title="The tests">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">model_gate.py &middot; In Plain Language</div>
       <h2 class="slide-title">Every model runs a <span class="accent">gate chain</span> before it ships.</h2>
       <p class="lede">Each gate: what it looks for, why it matters. Blocking gates stop the ship; warnings flag for the human.</p>
@@ -848,7 +858,7 @@ body{
         <div style="display:flex;gap:13px;align-items:flex-start;"><span class="badge pending" style="flex:0 0 auto;">WARN</span><div style="font-size:14.5px;"><strong style="color:var(--navy);">Where did every number come from?</strong> Color tells origin (blue&nbsp;=&nbsp;typed, green&nbsp;=&nbsp;linked, black&nbsp;=&nbsp;computed) and every input carries a source note.</div></div>
       </div>
       <div class="plain tight"><span class="plain-lbl">In plain terms</span>An automatic proofreader for the spreadsheet. <strong>BLOCK</strong> stops the model from shipping; <strong>WARN</strong> just flags it for a human to glance at.</div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -856,7 +866,7 @@ body{
        SLIDE 7 — THE-PROOF  [PLACEHOLDER — pending workflow]
        ==================================================================== -->
   <section class="slide" id="the-proof" data-title="The proof">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">The Machine Catches the Mistake</div>
       <h2 class="slide-title">Clean model <span style="color:var(--green-ink)">passes</span>. Broken model <span style="color:var(--burgundy)">fails</span>.</h2>
       <p class="lede">A deliberately-broken model gets caught and named, gate by gate. That&rsquo;s the whole point.</p>
@@ -886,7 +896,7 @@ body{
         </div>
       </div>
       <div class="plain"><span class="plain-lbl">In plain terms</span>We built one model we know is perfect and one we broke in 19 ways on purpose. The checker passes the first and catches every flaw in the second &mdash; like <strong>testing a smoke detector with real smoke.</strong> 150 automated tests keep it honest.</div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -894,7 +904,7 @@ body{
        SLIDE 8 — FLL-LEGIT  [PLACEHOLDER — pending fll-builder]
        ==================================================================== -->
   <section class="slide" id="fll-legit" data-title="FLL legit">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">FLL &middot; The Hardest Test</div>
       <h2 class="slide-title">FLL: the hardest test, and the <span class="accent">honest answer</span>.</h2>
 
@@ -931,7 +941,7 @@ body{
           </p>
         </div>
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary &middot; FLL figures from public SEC filings, no MNPI</div>
   </section>
 
@@ -941,7 +951,7 @@ body{
        catch callout + an embedded CLF Cap Structure render.
        ==================================================================== -->
   <section class="slide" id="clf-proof" data-title="CLF proof">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">Same Engine &middot; A Name We Picked Cold</div>
       <h2 class="slide-title">Cleveland&#8209;Cliffs: <span class="accent">ran cold, still gated.</span></h2>
 
@@ -986,7 +996,7 @@ body{
           </div>
         </div>
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary &middot; CLF figures from public SEC filings, no MNPI</div>
   </section>
 
@@ -996,7 +1006,7 @@ body{
        Primary-source-first, ingest/synthesize kept separate.
        ==================================================================== -->
   <section class="slide" id="research-engine" data-title="Research engine">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">The Research Skill &middot; How It Works</div>
       <h2 class="slide-title">A ticker goes in. <span class="accent">Three passes</span> come out.</h2>
       <p class="lede">The spine of the skill is one architectural decision: ingestion and synthesis are two separate passes. Keeping them apart is what makes the view trustworthy.</p>
@@ -1069,7 +1079,7 @@ body{
         <span class="plain-lbl">In plain terms</span>
         Read everything first, mark exactly where each fact came from, then and only then form a view. <strong>A view built before ingestion finishes contaminates the research with what you wanted to find.</strong>
       </p>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -1078,7 +1088,7 @@ body{
        Source-tier flag discipline + --connectors presets + --mode concision.
        ==================================================================== -->
   <section class="slide" id="research-modes" data-title="Source tiers &amp; modes">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">Controls &middot; Source Tiers and Output Modes</div>
       <h2 class="slide-title">Every fact carries a tier. <span class="accent">Every run picks a mode.</span></h2>
       <p class="lede">Two orthogonal controls: the source-tier discipline determines how much to trust each number; the output mode selects how much to render.</p>
@@ -1168,7 +1178,7 @@ body{
         </div>
 
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -1178,7 +1188,7 @@ body{
        NOT-A-BUY verdict + verifier catching two wrong facts.
        ==================================================================== -->
   <section class="slide" id="research-verifier" data-title="MNR: pass (yield trade)">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">Worked Example &middot; The Verifier Earns Its Keep</div>
       <h2 class="slide-title">MNR: yield trade, not a mispricing. <span class="accent">The verifier catches two wrong facts.</span></h2>
       <p class="lede">A full <code style="font-family:var(--font-mono);font-size:.88em;">--mode exec-summary --connectors edgar-only</code> run on Mach Natural Resources LP (NYSE:&nbsp;MNR), followed by a separate adversarial re-pull of every quantitative claim against EDGAR primary sources.</p>
@@ -1233,7 +1243,7 @@ body{
 
         </div>
       </div>
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary &middot; MNR figures from public SEC filings (EDGAR), no MNPI</div>
   </section>
 
@@ -1242,7 +1252,7 @@ body{
        ==================================================================== -->
   <section class="slide" id="close" data-title="Close">
     <img class="starfish-wm" src="assets/starfish-white.png" alt="">
-    <div class="slide-inner">
+    <div class="slide-stage"><div class="slide-inner">
       <div class="kicker">What It Means</div>
       <h2 class="close-title">The human reviews <span class="accent">judgment</span>,<br>not arithmetic or provenance.</h2>
       <ul class="close-points">
@@ -1255,7 +1265,7 @@ body{
       <hr class="close-rule">
       <p style="font-family:var(--font-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:30px;">Next &mdash; let&rsquo;s co&#8209;build a real name together.</p>
       <img class="close-logo" src="assets/asterozoa-white.png" alt="Asterozoa Capital">
-    </div>
+    </div></div>
     <div class="conf-footer">Asterozoa Capital &mdash; Proprietary</div>
   </section>
 
@@ -1319,6 +1329,58 @@ body{
   // expose count for verification harnesses
   window.__DECK_SLIDE_COUNT__ = slides.length;
   syncFromScroll();
+})();
+
+/* ---- SCALE-TO-FIT --------------------------------------------------------
+   For each slide: measure the .slide-stage natural (unscaled) size, compute
+   s = min(availW / naturalW, availH / naturalH), apply transform:scale(s).
+   Scale UP to fill if content is smaller than viewport; no hard cap at 1.
+   Runs on load + every resize. The .slide itself stays 100vw x 100vh.
+   ----------------------------------------------------------------------- */
+(function(){
+  var deck = document.getElementById('deck');
+  var slides = Array.prototype.slice.call(deck.querySelectorAll('.slide'));
+
+  function scaleAll(){
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    slides.forEach(function(slide){
+      var stage = slide.querySelector('.slide-stage');
+      if (!stage) return;
+      // Reset transform so we can measure natural size
+      stage.style.transform = 'none';
+      // Force layout
+      var rect = stage.getBoundingClientRect();
+      var naturalW = rect.width;
+      var naturalH = rect.height;
+      if (!naturalW || !naturalH) return;
+      // Available area: full viewport (the slide IS 100vw x 100vh)
+      var scaleW = vw / naturalW;
+      var scaleH = vh / naturalH;
+      var s = Math.min(scaleW, scaleH);
+      // Apply scale (no cap — fill up if small, shrink if too tall/wide)
+      stage.style.transform = 'scale(' + s + ')';
+    });
+  }
+
+  // Run on load
+  if (document.readyState === 'complete') {
+    scaleAll();
+  } else {
+    window.addEventListener('load', scaleAll);
+  }
+  // Also run immediately in case DOM is ready
+  scaleAll();
+
+  // Resize: debounce slightly so we don't fight the scroll handler
+  var rsTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(rsTimer);
+    rsTimer = setTimeout(scaleAll, 60);
+  });
+
+  // Expose for verification
+  window.__scaleAll = scaleAll;
 })();
 </script>
 
